@@ -30,7 +30,7 @@ feature in Settings. The assistant panel shows the running cost for each session
 
 Each project has a board (⌘2): person, event, evidence and note cards with typed connections
 (spouse, parent, child, supports, contradicts). Drag pinned pages from the Timeline onto it,
-shift-click to connect cards, and use **Import Scapple…** to bring in existing `.scap` boards.
+drag the round handle on a card's edge onto another card to connect them (or shift-click), and use **Import Scapple…** to bring in existing `.scap` boards.
 
 **Theories** (lightbulb button) track competing hypotheses, e.g. two candidate fathers. Click a
 theory to make it active; what you add or connect goes into it. Each has a status, evidence for

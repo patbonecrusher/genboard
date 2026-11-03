@@ -13,6 +13,8 @@ struct BoardView: View {
     @State private var panStart: CGSize?
     @State private var viewport: CGSize = .zero
     @State private var importError: String?
+    @State private var hoveredCardID: PersistentIdentifier?
+    @State private var hoveredHandleID: PersistentIdentifier?
     @GestureState private var magnification: CGFloat = 1
 
     private var zoom: CGFloat {
@@ -166,15 +168,39 @@ struct BoardView: View {
                 .frame(width: boardSize(frames).width, height: boardSize(frames).height)
                 .allowsHitTesting(false)
             ForEach(visibleCards) { card in
-                BoardCardView(card: card, isSelected: card.persistentModelID == app.selectedCardID,
+                let id = card.persistentModelID
+                BoardCardView(card: card, isSelected: id == app.selectedCardID,
                               dimmed: activeTheory.map { theory in !card.hypotheses.contains { $0 === theory } } ?? false,
-                              hasIssue: flaggedCards.contains(ObjectIdentifier(card)))
+                              hasIssue: flaggedCards.contains(ObjectIdentifier(card)),
+                              isLinkTarget: linkTarget(frames: frames)?.persistentModelID == id)
                     .frame(width: card.width)
-                    .onGeometryChange(for: CGSize.self) { $0.size } action: { cardSizes[card.persistentModelID] = $0 }
+                    .onGeometryChange(for: CGSize.self) { $0.size } action: { cardSizes[id] = $0 }
+                    .onHover { inside in
+                        if inside { hoveredCardID = id } else if hoveredCardID == id { hoveredCardID = nil }
+                    }
+                    .overlay(alignment: .trailing) {
+                        // Placed before .offset so it moves with the card.
+                        if showsHandle(for: id) {
+                            ConnectHandle(zoom: zoom)
+                                .offset(x: 7 / zoom)
+                                .onHover { inside in
+                                    if inside { hoveredHandleID = id } else if hoveredHandleID == id { hoveredHandleID = nil }
+                                }
+                                .gesture(linkDrag(from: card))
+                        }
+                    }
                     .offset(x: card.x + (dragOffsets[card.persistentModelID]?.width ?? 0),
                             y: card.y + (dragOffsets[card.persistentModelID]?.height ?? 0))
                     .gesture(cardDrag(card))
                     .onTapGesture { tap(card) }
+            }
+            if let draft = app.linkDraft, let source = frames[draft.from] {
+                Path { path in
+                    path.move(to: CGPoint(x: source.maxX, y: source.midY))
+                    path.addLine(to: draft.point)
+                }
+                .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2 / zoom, lineCap: .round, dash: [6 / zoom, 4 / zoom]))
+                .allowsHitTesting(false)
             }
         }
         .frame(width: boardSize(frames).width, height: boardSize(frames).height, alignment: .topLeading)
@@ -307,6 +333,36 @@ struct BoardView: View {
     /// drift away from the pointer whenever the board wasn't at 100%.
     static let viewportSpace = "boardViewport"
 
+    // MARK: Connecting by dragging
+
+    /// The handle shows on the hovered or selected card, and stays on the source while dragging.
+    private func showsHandle(for id: PersistentIdentifier) -> Bool {
+        if let draft = app.linkDraft { return draft.from == id }
+        return id == hoveredCardID || id == hoveredHandleID || id == app.selectedCardID
+    }
+
+    /// The card under the pointer while a connection is being dragged (the topmost, as drawn).
+    private func linkTarget(frames: [PersistentIdentifier: CGRect]) -> BoardCard? {
+        guard let draft = app.linkDraft else { return nil }
+        return visibleCards.last { card in
+            card.persistentModelID != draft.from && frames[card.persistentModelID]?.contains(draft.point) == true
+        }
+    }
+
+    private func linkDrag(from card: BoardCard) -> some Gesture {
+        DragGesture(minimumDistance: 1, coordinateSpace: .named(Self.viewportSpace))
+            .onChanged { value in
+                app.linkDraft = LinkDraft(from: card.persistentModelID, point: boardPoint(fromView: value.location))
+            }
+            .onEnded { _ in
+                if let target = linkTarget(frames: cardFrames) {
+                    app.connect(card, to: target)
+                    app.selectedCardID = card.persistentModelID  // shows the new connection, ready for a role
+                }
+                app.linkDraft = nil
+            }
+    }
+
     private func cardDrag(_ card: BoardCard) -> some Gesture {
         DragGesture(minimumDistance: 2, coordinateSpace: .named(Self.viewportSpace))
             .onChanged { value in
@@ -410,6 +466,8 @@ struct BoardCardView: View {
     var dimmed = false
     /// True when a board check involves this card.
     var hasIssue = false
+    /// True while a connection is being dragged over this card.
+    var isLinkTarget = false
 
     private var theories: [Hypothesis] {
         card.hypotheses.filter(\.isVisible).sorted { $0.createdAt < $1.createdAt }
@@ -417,6 +475,7 @@ struct BoardCardView: View {
 
     /// Selection wins, then a question flag, then the card's first visible theory.
     private var border: (color: Color, width: CGFloat, dash: [CGFloat]) {
+        if isLinkTarget { return (.accentColor, 4, []) }
         if isSelected { return (.accentColor, 2, []) }
         if card.flag == .question { return (.orange, 2, []) }
         if let theory = theories.first {
@@ -735,5 +794,23 @@ extension Color {
         self.init(red: Double((value >> 16) & 0xFF) / 255,
                   green: Double((value >> 8) & 0xFF) / 255,
                   blue: Double(value & 0xFF) / 255)
+    }
+}
+
+/// The round handle on a card's edge; drag it onto another card to connect them. Sized against the
+/// zoom so it stays the same size, and as easy to grab, on screen at any zoom.
+private struct ConnectHandle: View {
+    let zoom: CGFloat
+
+    var body: some View {
+        let side = 16 / zoom
+        Circle()
+            .fill(Color.accentColor)
+            .overlay(Circle().stroke(.white, lineWidth: 2 / zoom))
+            .overlay(Image(systemName: "plus").font(.system(size: 9 / zoom, weight: .bold)).foregroundStyle(.white))
+            .frame(width: side, height: side)
+            .contentShape(Circle().inset(by: -4 / zoom))
+            .pointerStyle(.grabIdle)
+            .help("Drag onto another card to connect them")
     }
 }

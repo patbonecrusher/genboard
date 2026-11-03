@@ -95,8 +95,10 @@ Scapple board, but with typed cards so the app understands it.
 | Note | free text; flag as Question or Conflict |
 
 Connections have roles, read "from → to": related, spouse of, parent of,
-child of, supports (green), contradicts (red, dashed). Shift-click a card to
-connect the selected card to it; roles are edited in the card editor.
+child of, supports (green), contradicts (red, dashed). To connect, drag the
+round handle on a hovered or selected card onto another card (a dashed line
+follows the pointer and the target card lights up), or shift-click. Roles,
+labels and notes are edited in the card editor.
 
 - Drag a pinned page from the Timeline onto the board to make an evidence card.
 - Import a Scapple `.scap` board: notes become note cards (keeping position and

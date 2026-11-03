@@ -13,6 +13,12 @@ enum MainMode: Hashable {
     case browse, board, tree
 }
 
+/// A connection being dragged out of a card's handle; `point` is the pointer in board coordinates.
+struct LinkDraft: Equatable {
+    let from: PersistentIdentifier
+    var point: CGPoint
+}
+
 /// A request to have the AI suggest cards from one record card; drives the review sheet.
 struct SuggestionRequest: Identifiable {
     let id = UUID()
@@ -44,6 +50,7 @@ final class AppState {
     var boardZoom: CGFloat = 1
     var boardPan = CGSize(width: 40, height: 40)
     var selectedCardID: PersistentIdentifier?
+    var linkDraft: LinkDraft?
     /// The theory new cards and connections go into; other cards dim while one is active.
     var activeHypothesisID: PersistentIdentifier?
     var showTheories = true
@@ -219,6 +226,15 @@ final class AppState {
                 link.note = "1892 baptism at Ste-Hélène names Olivine Girard as mother."
             }
             selectedCardID = olivine.persistentModelID
+            if UserDefaults.standard.bool(forKey: "GenboardSmokeLinkDrag") {
+                activeHypothesisID = nil
+                selectedCardID = nil
+                showSidebar = false
+                showInspector = false
+                showTheories = false
+                showChecks = false
+                linkDraft = LinkDraft(from: olivine.persistentModelID, point: CGPoint(x: adelard.x + 60, y: adelard.y + 20))
+            }
             bannerDismissed = true
             boardZoom = 0.6
         } else {
@@ -312,6 +328,19 @@ final class AppState {
                     if step % 97 == 0, let theory = theories.last { self.delete(theory) }
                     if step % 21 == 0 { self.showTheories.toggle() }
                     if step % 22 == 0 { self.showChecks.toggle() }
+                    // A connection dragged from one card's handle and dropped on another.
+                    if step % 15 == 0, cards.count > 1 {
+                        let target = cards[step * 3 % cards.count]
+                        self.linkDraft = LinkDraft(from: cards[step % cards.count].persistentModelID,
+                                                   point: CGPoint(x: target.x + 10, y: target.y + 10))
+                    }
+                    if step % 15 == 7, let draft = self.linkDraft {
+                        if let from = cards.first(where: { $0.persistentModelID == draft.from }),
+                           let to = cards.first(where: { $0 !== from && CGRect(x: $0.x, y: $0.y, width: $0.width, height: 60).contains(draft.point) }) {
+                            self.connect(from, to: to)
+                        }
+                        self.linkDraft = nil
+                    }
                     if step % 39 == 0 { self.mainMode = .tree }
                     if step % 41 == 0, let person = cards.first(where: { $0.kind == .person }) {
                         self.treeRootID = person.persistentModelID
