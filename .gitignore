@@ -1,0 +1,4 @@
+build/
+# Generated from project.yml by XcodeGen (see README).
+Genboard.xcodeproj/
+.DS_Store
