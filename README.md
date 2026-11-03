@@ -16,6 +16,9 @@ xcodebuild -scheme Genboard -derivedDataPath build build && open build/Build/Pro
 
 `project.yml` is the source of truth; regenerate the Xcode project after adding files.
 
+The app icon is drawn in code by `tools/make_icon.swift`; run `tools/make_icon.sh` after editing it
+to regenerate every size in `Genboard/Assets.xcassets/AppIcon.appiconset`.
+
 ## AI assistant
 
 Add an Anthropic API key in Settings (⌘,). It is stored in the macOS Keychain
