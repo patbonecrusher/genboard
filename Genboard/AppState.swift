@@ -97,7 +97,7 @@ final class AppState {
     /// so the full window (browser, inspector, banner) can be exercised without touching real data.
     static var isSmokeTest: Bool {
         #if DEBUG
-        UserDefaults.standard.bool(forKey: "GenboardSmokeTest")
+        UserDefaults.standard.bool(forKey: "GenboardSmokeTest") || isDemo
         #else
         false
         #endif
@@ -105,6 +105,12 @@ final class AppState {
 
     func startSmokeTestIfRequested() {
         guard Self.isSmokeTest, activeSession == nil else { return }
+        #if DEBUG
+        if Self.isDemo {
+            buildDemo()
+            return
+        }
+        #endif
         let project = ResearchProject(name: "Smoke Test")
         context.insert(project)
         let long = String(repeating: "Joseph Morel, son of Jean Morel and Marie Gagnon, baptized at Saint-Hyacinthe. ", count: 6)

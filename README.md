@@ -4,6 +4,8 @@ A macOS research workbench for genealogy: browse FamilySearch, WikiTree, Find a 
 Drouin inside research sessions, pin pages with a note on why they matter, mark dead ends,
 and write where you left off when you close a session. See [DESIGN.md](DESIGN.md).
 
+Website: https://patbonecrusher.github.io/genboard/
+
 ## Build
 
 Requires Xcode 26+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
@@ -18,6 +20,15 @@ xcodebuild -scheme Genboard -derivedDataPath build build && open build/Build/Pro
 
 The app icon is drawn in code by `tools/make_icon.swift`; run `tools/make_icon.sh` after editing it
 to regenerate every size in `Genboard/Assets.xcassets/AppIcon.appiconset`.
+
+## Website
+
+`docs/` is published to GitHub Pages by `.github/workflows/pages.yml` on every push that changes it.
+
+- `python3 tools/build_site.py` rebuilds the pages (shared header and footer).
+- `tools/build_site_assets.sh` regenerates the icons and social card.
+- `tools/capture_screenshots.sh` retakes the screenshots from a fictional demo project
+  (`-GenboardDemo YES`, Debug builds only, in-memory store), after a Debug build.
 
 ## AI assistant
 

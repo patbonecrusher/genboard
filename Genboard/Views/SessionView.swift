@@ -155,7 +155,7 @@ private struct StartPage: View {
     var body: some View {
         VStack(spacing: 20) {
             Text("Where to?").font(.title2.bold())
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 180))], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 230))], spacing: 12) {
                 ForEach(Sites.all) { site in
                     Button { tab.load(site.url) } label: {
                         Label(site.name, systemImage: site.symbol)

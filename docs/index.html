@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Genboard: a research workbench for genealogy</title>
+<meta name="description" content="Genboard is a native macOS app for family-history research: browse genealogy sites in research sessions, test competing theories on a board, and export a family tree as GEDCOM.">
+<link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Genboard">
+<meta property="og:title" content="Genboard: a research workbench for genealogy">
+<meta property="og:description" content="Genboard is a native macOS app for family-history research: browse genealogy sites in research sessions, test competing theories on a board, and export a family tree as GEDCOM.">
+<meta property="og:url" content="https://patbonecrusher.github.io/genboard/">
+<meta property="og:image" content="https://patbonecrusher.github.io/genboard/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="brand" href="./"><img class="mark" src="icon-64.png" alt="" width="36" height="36">Genboard</a>
+  <nav><a href="./" aria-current="page">Overview</a><a href="help.html">Help</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://github.com/patbonecrusher/genboard">GitHub</a></nav>
+</div></header>
+<main>
+<img class="hero-icon" src="icon-512.png" alt="Genboard app icon" width="132" height="132">
+<h1>Genboard</h1>
+<p class="lede">A native macOS workbench for family-history research. Browse FamilySearch, WikiTree, Find a Grave and the Drouin collection in research sessions, keep track of what each source says, test competing theories on a board, and export the result as a family tree.</p>
+
+<div class="card">
+  <h3>Get Genboard</h3>
+  <p>There's no signed download yet, so build it from source. You need Xcode 26 and <a href="https://github.com/yonaskolb/XcodeGen">XcodeGen</a> (<code>brew install xcodegen</code>).</p>
+  <pre><code>git clone https://github.com/patbonecrusher/genboard
+cd genboard &amp;&amp; xcodegen generate
+open Genboard.xcodeproj</code></pre>
+</div>
+<p class="meta">Requires macOS 15 Sequoia or later. Genboard is in early development, so expect rough edges.</p>
+
+<div class="shots">
+  <figure><img src="screenshot-1.png" alt="The research board: person, event, evidence and note cards connected by parent, spouse, supports and contradicts lines, with a Theories panel and a Checks panel" width="2400" height="1500"><figcaption>The research board: people, events and records connected by what they mean, two competing theories about a father, and a check that caught a burial dated before the death.</figcaption></figure>
+  <figure><img src="screenshot-2.png" alt="A pedigree chart with both candidate fathers drawn in their theory colors" width="2400" height="1500"><figcaption>The family tree is built from the board. Competing parents appear side by side in their theory's color.</figcaption></figure>
+  <figure><img src="screenshot-3.png" alt="The browser with a Last time banner, to-dos, and a timeline of pinned pages with notes" width="2400" height="1500"><figcaption>Research sessions remember every page, the ones you pinned and why, and where you left off last time.</figcaption></figure>
+</div>
+
+<h2>What it does</h2>
+<div class="grid">
+  <div class="card"><h3>Research sessions</h3><p>A built-in browser keeps every page you open in the session's history, so twenty tabs and a folder of screenshots become one timeline.</p></div>
+  <div class="card"><h3>Pins and dead ends</h3><p>Pin a page with <kbd>⌘D</kbd> to save a screenshot, the text you selected and a note on why it matters. Mark searches that led nowhere so you don't repeat them.</p></div>
+  <div class="card"><h3>Pick up where you left off</h3><p>Closing a session asks where you stopped, what's next and what's still open. The next session starts with that note and its to-dos.</p></div>
+  <div class="card"><h3>A board for the evidence</h3><p>Person, event, evidence and note cards, connected as parent, spouse, child, <em>supports</em> or <em>contradicts</em>. Drag pinned pages straight onto it.</p></div>
+  <div class="card"><h3>Competing theories</h3><p>Track rival explanations, such as two candidate fathers, side by side. Each has a status, evidence for and against, and its own to-dos.</p></div>
+  <div class="card"><h3>Checks</h3><p>Catches burials dated before a stated death, people appearing after they died, marriages at ten and implausible parent ages. They run locally and cost nothing.</p></div>
+  <div class="card"><h3>Family tree and GEDCOM</h3><p>Ancestor and descendant charts built from the board. Export people, families, events and sources as GEDCOM for other genealogy software.</p></div>
+  <div class="card"><h3>Claude, if you want it</h3><p>With your own Anthropic API key, ask questions about your research, transcribe handwritten parish records, and turn a record into suggested cards you review first.</p></div>
+  <div class="card"><h3>Scapple boards</h3><p>Import existing Scapple boards. Notes keep their places and colors, and lines and arrows become connections.</p></div>
+</div>
+
+<div class="card accent">
+  <p><strong>Your research stays on your Mac.</strong> Genboard has no accounts and no analytics, and the developer never receives your data. The only thing that leaves your Mac is what you send to Claude when you use the AI features, with your own API key. See the <a href="privacy.html">Privacy Policy</a>.</p>
+</div>
+
+<h2>Contact</h2>
+<p>Bug reports and feature requests are welcome on <a href="https://github.com/patbonecrusher/genboard/issues">GitHub Issues</a>. The source code is on <a href="https://github.com/patbonecrusher/genboard">GitHub</a>.</p>
+</main>
+<footer class="site"><div class="inner">
+  <a href="./">Overview</a><a href="help.html">Help</a><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="https://github.com/patbonecrusher/genboard">Source</a>
+  <p>Genboard is an independent project by Patrick Laplante. It is not affiliated with FamilySearch, WikiTree, Find a Grave, Généalogie Québec or Anthropic; their names are trademarks of their owners. Claude is a trademark of Anthropic. Mac and macOS are trademarks of Apple Inc. The people in the screenshots are fictional.</p>
+</div></footer>
+</body>
+</html>

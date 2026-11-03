@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · Genboard</title>
+<meta name="description" content="Genboard keeps your research on your Mac. The developer receives nothing; AI requests you make go to Anthropic with your own API key.">
+<link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Genboard">
+<meta property="og:title" content="Privacy Policy · Genboard">
+<meta property="og:description" content="Genboard keeps your research on your Mac. The developer receives nothing; AI requests you make go to Anthropic with your own API key.">
+<meta property="og:url" content="https://patbonecrusher.github.io/genboard/privacy.html">
+<meta property="og:image" content="https://patbonecrusher.github.io/genboard/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="brand" href="./"><img class="mark" src="icon-64.png" alt="" width="36" height="36">Genboard</a>
+  <nav><a href="./">Overview</a><a href="help.html">Help</a><a href="privacy.html" aria-current="page">Privacy</a><a href="terms.html">Terms</a><a href="https://github.com/patbonecrusher/genboard">GitHub</a></nav>
+</div></header>
+<main>
+<h1>Privacy Policy</h1>
+<p class="meta">Effective 2 November 2026</p>
+
+<div class="card accent">
+  <p><strong>In short:</strong> Genboard keeps your research on your Mac, and the developer never receives your data or anything about how you use the app. Information leaves your Mac only when the built-in browser loads a website you visit, or when you use an AI feature, which sends your request to Anthropic with your own API key.</p>
+</div>
+
+<h2>Who this covers</h2>
+<p>This policy describes how the Genboard application for macOS ("Genboard", "the app") handles information. Genboard is developed and maintained by an individual developer ("the developer").</p>
+
+<h2>Information the developer collects</h2>
+<p>None. Genboard has no accounts, analytics, telemetry, crash reporting or advertising, and it never sends anything to the developer.</p>
+
+<h2>Information stored on your Mac</h2>
+<div class="table-wrap"><table>
+  <tr><th>Data</th><th>Where</th><th>How to remove it</th></tr>
+  <tr><td>Projects, sessions, page history, notes, board, theories and to-dos</td><td><code>~/Library/Application Support/Genboard/</code></td><td>Delete sessions or projects in the app, or delete that folder.</td></tr>
+  <tr><td>Screenshots of pinned pages</td><td><code>~/Library/Application Support/Genboard/Screenshots/</code></td><td>Delete the session, or the folder.</td></tr>
+  <tr><td>Website data from the built-in browser (cookies, so you stay signed in, and caches)</td><td><code>~/Library/WebKit/com.genboard.app</code> and <code>~/Library/Caches/com.genboard.app</code></td><td>Delete those folders while Genboard is closed.</td></tr>
+  <tr><td>Your Anthropic API key</td><td>Your macOS Keychain</td><td><strong>Remove Key</strong> in Settings.</td></tr>
+  <tr><td>Preferences, such as the models you chose</td><td><code>~/Library/Preferences/com.genboard.app.plist</code></td><td>Delete the file.</td></tr>
+</table></div>
+<p>This data is not synced or shared. Genealogy research often includes information about living people; it stays wherever you keep your Mac's files and backups.</p>
+
+<h2>Websites you visit</h2>
+<p>The built-in browser loads the websites you open, such as FamilySearch, WikiTree, Find a Grave and Généalogie Québec, the same way Safari would. Those sites receive what any browser sends them, and their own privacy policies apply. Genboard doesn't send them anything else.</p>
+
+<h2>AI features (Claude)</h2>
+<p>The AI features are off until you add your own Anthropic API key, and they send something only when you use them: when you ask the assistant a question, transcribe a record, ask for suggested cards, or draft a session summary. Each request goes directly from your Mac to Anthropic's API, with your key, and can include:</p>
+<ul>
+  <li>your question;</li>
+  <li>the project's research context: its name, session goals and earlier summaries, to-dos, pinned pages with their notes, selected text and transcriptions, dead ends, and the cards, connections and theories on the board;</li>
+  <li>the current page's text or a screenshot of it, if you choose to attach them;</li>
+  <li>for transcription and suggested cards, the screenshot of that record.</li>
+</ul>
+<p>Anthropic processes these requests under its own <a href="https://www.anthropic.com/legal/commercial-terms">commercial terms</a> and <a href="https://www.anthropic.com/legal/privacy">privacy policy</a>, which apply to your API account. The developer never sees these requests or their answers.</p>
+
+<h2>Third parties</h2>
+<p>Apart from the websites you visit and, if you use them, Anthropic's API, Genboard shares nothing with anyone. It contains no third-party code.</p>
+
+<h2>Children</h2>
+<p>Genboard does not collect personal information from anyone, including children.</p>
+
+<h2>Changes</h2>
+<p>If Genboard's handling of information changes, this page will be updated before the release that changes it, and the effective date above will change.</p>
+
+<h2>Contact</h2>
+<p>Questions about this policy can be sent to the developer through <a href="https://github.com/patbonecrusher/genboard/issues">GitHub Issues</a>.</p>
+</main>
+<footer class="site"><div class="inner">
+  <a href="./">Overview</a><a href="help.html">Help</a><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="https://github.com/patbonecrusher/genboard">Source</a>
+  <p>Genboard is an independent project by Patrick Laplante. It is not affiliated with FamilySearch, WikiTree, Find a Grave, Généalogie Québec or Anthropic; their names are trademarks of their owners. Claude is a trademark of Anthropic. Mac and macOS are trademarks of Apple Inc. The people in the screenshots are fictional.</p>
+</div></footer>
+</body>
+</html>

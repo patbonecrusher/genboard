@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help · Genboard</title>
+<meta name="description" content="How to use Genboard: research sessions, pins, the research board, theories, checks, the family tree, GEDCOM export and the Claude assistant.">
+<link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Genboard">
+<meta property="og:title" content="Help · Genboard">
+<meta property="og:description" content="How to use Genboard: research sessions, pins, the research board, theories, checks, the family tree, GEDCOM export and the Claude assistant.">
+<meta property="og:url" content="https://patbonecrusher.github.io/genboard/help.html">
+<meta property="og:image" content="https://patbonecrusher.github.io/genboard/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="brand" href="./"><img class="mark" src="icon-64.png" alt="" width="36" height="36">Genboard</a>
+  <nav><a href="./">Overview</a><a href="help.html" aria-current="page">Help</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://github.com/patbonecrusher/genboard">GitHub</a></nav>
+</div></header>
+<main>
+<h1>Help</h1>
+<p class="lede">How Genboard is organized, and how to use each part.</p>
+
+<h2>Projects and sessions</h2>
+<p>A <strong>project</strong> is one research effort, such as one family line. Inside it, a <strong>session</strong> is one sitting of research with a goal, like “Find Émilie's father”. Create a project with <strong>New Project</strong> at the bottom of the sidebar, then start a session from it. Click an earlier session in the sidebar to resume it; its tabs reopen.</p>
+
+<h2>Browsing</h2>
+<p>Use <strong>Browse</strong> (<kbd>⌘1</kbd>) to work in the built-in browser. The <strong>Sites</strong> menu and the start page open FamilySearch, WikiTree, Find a Grave and Généalogie Québec. Your logins are remembered between launches. Every page you open is recorded in the session's <strong>Timeline</strong> (right-hand panel).</p>
+<ul>
+  <li><strong>Pin</strong> a page with <kbd>⌘D</kbd>: Genboard saves a screenshot and any text you selected, and asks why the page matters.</li>
+  <li><strong>Mark a dead end</strong> with <kbd>⇧⌘D</kbd> when a page was checked and had nothing useful.</li>
+  <li>The Timeline shows pins and dead ends. Check <em>Show all pages</em> to see everything. Right-click a page to edit its note, transcribe it with AI, or open it in a new tab.</li>
+</ul>
+
+<h2>Ending a session</h2>
+<p><strong>End Session</strong> (<kbd>⇧⌘E</kbd>) asks where you left off, your next steps (each becomes a to-do) and open questions, and whether to keep the open tabs. The same prompt appears when you switch sessions or quit. Next time, a <strong>Last time</strong> banner shows that note and the to-dos.</p>
+
+<h2>The research board</h2>
+<p>Use <strong>Board</strong> (<kbd>⌘2</kbd>). Each project has one board.</p>
+<ul>
+  <li><strong>Add cards</strong> from <strong>+ Add</strong>: Person, Event (baptism, marriage, burial, census…), Note, or Evidence from a pinned page. You can also drag a pinned page from the Timeline onto the board.</li>
+  <li><strong>Edit</strong> a card by clicking it. Flag a card as a <em>Question</em> or a <em>Conflict</em>.</li>
+  <li><strong>Connect</strong> two cards by dragging the round handle on a card's edge onto the other card, or select one and shift-click the other. In the card editor, set what the connection means: <em>related</em>, <em>spouse of</em>, <em>parent of</em>, <em>child of</em>, <em>supports</em> or <em>contradicts</em>. Click ✎ beside a connection to give it a label or a note.</li>
+  <li><strong>Move</strong> cards by dragging them, pan by dragging the background, and zoom with the toolbar or a pinch.</li>
+</ul>
+
+<h2>Theories</h2>
+<p>Click <strong>Theories</strong> on the board toolbar. A theory is a statement you're testing, like “Émilie's father is Antoine Tremblay”. Press <strong>+</strong> to start one (it begins with the selected card), then click it to make it active: other cards dim, and the cards and connections you add go into it. A card can belong to several theories, so competing versions share the facts they agree on.</p>
+<p>Set a theory's status to <em>Open</em>, <em>Supported</em> or <em>Refuted</em>. Its cards show a <span class="theory">dashed border</span> while it's open and a solid one once supported; cards that belong only to refuted theories are greyed out. Each theory lists its evidence for and against (from <em>supports</em> and <em>contradicts</em> connections) and has its own to-dos. Use the eye button to hide a theory.</p>
+
+<h2>Checks</h2>
+<p><strong>Checks</strong> on the board toolbar compares the years on person and event cards along their connections, and shows a count when it finds something:</p>
+<ul>
+  <li>A burial or baptism that disagrees with a person's stated dates.</li>
+  <li>Someone appearing in an event after their death or before their birth.</li>
+  <li>A spouse under 13 at marriage, a parent under 13 or over 70 at a birth, or a child born after a parent died.</li>
+  <li>Two cards with the same name that might be one person.</li>
+</ul>
+<p class="note">Write dates on person cards as “1861–1934”, “b. 1826”, “d. 1888” or “b. ~1862”. Marriage checks apply to people connected to the marriage as a spouse (the <em>spouse of</em> role, or a label such as groom, bride, époux or épouse), since boards often connect children to their parents' marriage.</p>
+
+<h2>Family tree and GEDCOM</h2>
+<p>Use <strong>Tree</strong> (<kbd>⌘3</kbd>) for an ancestor or descendant chart built from the board's <em>parent of</em>, <em>child of</em> and <em>spouse of</em> connections. Pick the starting person from the menu, or double-click anyone in the chart. Competing parents from different theories are all shown in their theory colors.</p>
+<p><strong>GEDCOM</strong> in the tree toolbar saves a GEDCOM 5.5.1 file for FamilySearch, Ancestry, Gramps or MacFamilyTree: people, births, baptisms, deaths, burials, marriages, families, and your evidence cards as sources. Refuted and hidden theories are left out. Set each person's <strong>Sex</strong> in the card editor so parents are placed as husband and wife.</p>
+
+<h2>The Claude assistant</h2>
+<p>The AI features are optional and use your own Anthropic API key, added in <strong>Settings</strong> (<kbd>⌘,</kbd>) and stored in your Keychain. Usage is billed to your Anthropic account; the Assistant panel shows the running cost of each session.</p>
+<ul>
+  <li><strong>Assistant</strong> (right-hand panel): ask questions. It sees your pins, notes, dead ends, to-dos, board, theories and earlier session summaries, plus the current page if you attach its text or a screenshot.</li>
+  <li><strong>Transcribe with AI</strong> (right-click a pinned page): transcribes and translates a record and lists the people and events in it.</li>
+  <li><strong>Suggest Cards with AI</strong> (on an evidence card): proposes people, events and relationships from the record. Nothing is added until you review the list and click Add.</li>
+  <li><strong>Draft with AI</strong> (when ending a session): writes a first draft of your summary.</li>
+</ul>
+<p>Choose the model for each feature in Settings. See the <a href="privacy.html">Privacy Policy</a> for what is sent.</p>
+
+<h2>Importing a Scapple board</h2>
+<p>Click the import button on the board toolbar and choose a <code>.scap</code> file. Notes become note cards in the same places and colors, and lines and arrows become connections. Change a card's type afterwards in its editor.</p>
+
+<h2>Keyboard shortcuts</h2>
+<div class="table-wrap"><table>
+  <tr><th>Action</th><th>Keys</th></tr>
+  <tr><td>Browse / Board / Tree</td><td><kbd>⌘1</kbd> / <kbd>⌘2</kbd> / <kbd>⌘3</kbd></td></tr>
+  <tr><td>New tab</td><td><kbd>⌘T</kbd></td></tr>
+  <tr><td>Pin page</td><td><kbd>⌘D</kbd></td></tr>
+  <tr><td>Mark or unmark a dead end</td><td><kbd>⇧⌘D</kbd></td></tr>
+  <tr><td>End session</td><td><kbd>⇧⌘E</kbd></td></tr>
+  <tr><td>Save a pin, or save and close a session</td><td><kbd>⌘↩</kbd></td></tr>
+  <tr><td>Settings</td><td><kbd>⌘,</kbd></td></tr>
+</table></div>
+
+<h2>Your data</h2>
+<p>Everything is stored on your Mac, in <code>~/Library/Application Support/Genboard/</code> (the database and pinned screenshots). To back it up, quit Genboard and copy that folder.</p>
+
+<h2>Something wrong?</h2>
+<p>Report it on <a href="https://github.com/patbonecrusher/genboard/issues">GitHub Issues</a>, with your macOS version and what you were doing when it happened.</p>
+</main>
+<footer class="site"><div class="inner">
+  <a href="./">Overview</a><a href="help.html">Help</a><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="https://github.com/patbonecrusher/genboard">Source</a>
+  <p>Genboard is an independent project by Patrick Laplante. It is not affiliated with FamilySearch, WikiTree, Find a Grave, Généalogie Québec or Anthropic; their names are trademarks of their owners. Claude is a trademark of Anthropic. Mac and macOS are trademarks of Apple Inc. The people in the screenshots are fictional.</p>
+</div></footer>
+</body>
+</html>
