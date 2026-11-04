@@ -14,6 +14,8 @@ targets:
     type: application
     platform: macOS
     sources: [Genboard]
+    scheme:
+      testTargets: [GenboardTests]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.patlaplante.Genboard
@@ -27,3 +29,15 @@ targets:
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
         ENABLE_HARDENED_RUNTIME: NO
+  GenboardTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [GenboardTests]
+    dependencies:
+      - target: Genboard
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.patlaplante.GenboardTests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"

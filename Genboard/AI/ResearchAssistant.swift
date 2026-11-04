@@ -325,6 +325,10 @@ enum ResearchContext {
                 if card.kind != .note, !card.details.isEmpty { line += ": \(card.details)" }
                 if card.kind == .note, card.details.contains("\n") { line += ": \(card.details)" }
                 if !card.urlString.isEmpty { line += " <\(card.urlString)>" }
+                if card.kind == .evidence {
+                    if card.sourceType != .unknown || card.information != .unknown { line += " (source: \(card.evidenceRating))" }
+                    if !card.citation.isEmpty { line += " Citation: \(card.citation)" }
+                }
                 out += line + "\n"
             }
             let links = project?.links ?? []
@@ -347,9 +351,13 @@ enum ResearchContext {
                 if !theory.cards.isEmpty {
                     out += "  Cards: " + theory.cards.map(\.displayName).joined(separator: "; ") + "\n"
                 }
-                let supporting = theory.evidence(.supports).map(\.displayName)
+                func describe(_ card: BoardCard) -> String {
+                    card.kind == .evidence ? "\(card.displayName) (\(card.evidenceRating))" : card.displayName
+                }
+                let supporting = theory.evidence(.supports).map(describe)
                 let against = BoardCard.unique(theory.evidence(.contradicts) + theory.cards.filter { $0.flag == .conflict })
-                    .map(\.displayName)
+                    .map(describe)
+                out += "  Weight of evidence: \(theory.strength.label.lowercased())\n"
                 if !supporting.isEmpty { out += "  Evidence for: " + supporting.joined(separator: "; ") + "\n" }
                 if !against.isEmpty { out += "  Evidence against: " + against.joined(separator: "; ") + "\n" }
                 let todos = theory.todos.filter { !$0.done }.map(\.text)

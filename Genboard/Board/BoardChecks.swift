@@ -119,11 +119,11 @@ enum BoardChecks {
     // MARK: Parsing
 
     /// Years in "1861–1934", "b. 1826", "d. 1888", "14 janvier 1817", "~1862".
-    static func years(in text: String) -> [Int] {
+    nonisolated static func years(in text: String) -> [Int] {
         text.matches(of: /\b(1[5-9]\d\d|20\d\d)\b/).compactMap { Int($0.output.1) }
     }
 
-    static func firstYear(in text: String) -> Int? { years(in: text).first }
+    nonisolated static func firstYear(in text: String) -> Int? { years(in: text).first }
 
     /// Birth and death from a person card's date field.
     static func statedLife(_ person: BoardCard) -> Life {

@@ -49,7 +49,13 @@ final class AppState {
     var mainMode = MainMode.browse
     var boardZoom: CGFloat = 1
     var boardPan = CGSize(width: 40, height: 40)
-    var selectedCardID: PersistentIdentifier?
+    var selectedCardID: PersistentIdentifier? {
+        didSet { if selectedCardID != nil { selectedLinkID = nil } }
+    }
+    /// A connection clicked on the board; its editor replaces the card editor.
+    var selectedLinkID: PersistentIdentifier? {
+        didSet { if selectedLinkID != nil { selectedCardID = nil } }
+    }
     var linkDraft: LinkDraft?
     /// The theory new cards and connections go into; other cards dim while one is active.
     var activeHypothesisID: PersistentIdentifier?
@@ -69,11 +75,11 @@ final class AppState {
     @ObservationIgnored private var stressProject: ResearchProject?
 
     init() {
-        if !Self.isSmokeTest { BundleIDMigration.run() }
+        if !Self.isSmokeTest && !Self.isRunningTests { BundleIDMigration.run() }
         do {
             // An explicit file: the unsandboxed default (Application Support/default.store) is shared
             // with every other unsandboxed SwiftData app on the Mac.
-            let configuration = Self.isSmokeTest
+            let configuration = Self.isSmokeTest || Self.isRunningTests
                 ? ModelConfiguration(isStoredInMemoryOnly: true)
                 : ModelConfiguration(url: Self.storeURL)
             container = try ModelContainer(for: ResearchProject.self, ResearchSession.self, Visit.self, TodoItem.self,
@@ -93,6 +99,11 @@ final class AppState {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory.appending(path: "Genboard.store")
     }()
+
+    /// Unit tests run inside the app; they must never open the real store.
+    static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
 
     /// Debug launch with `-GenboardSmokeTest YES`: in-memory store and a session opened on a real page,
     /// so the full window (browser, inspector, banner) can be exercised without touching real data.
@@ -650,6 +661,7 @@ extension AppState {
         card.urlString = visit.urlString
         card.details = visit.note
         card.visit = visit
+        card.sourceType = SourceType.guess(from: visit.urlString)
         context.insert(card)
         addToActiveHypothesis(card)
         save()  // before reading the ID: a new model's persistentModelID changes when first saved
@@ -684,6 +696,7 @@ extension AppState {
     }
 
     func delete(_ link: BoardLink) {
+        if selectedLinkID == link.persistentModelID { selectedLinkID = nil }
         context.delete(link)
         save()
     }
@@ -696,6 +709,76 @@ extension AppState {
         } else {
             addTab(url)
         }
+    }
+
+    /// Imports the people and families of a GEDCOM file as person cards, laid out as a family tree to
+    /// the right of anything already on the board: parents above children, spouses side by side.
+    @discardableResult
+    func importGedcom(from url: URL, into project: ResearchProject) throws -> (people: Int, families: Int) {
+        let result = try GedcomImporter.parse(Data(contentsOf: url))
+        let rows = GedcomImporter.generations(result)
+        let peopleByID = Dictionary(result.people.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let originX = (project.cards.map { $0.x + $0.width }.max() ?? 0) + (project.cards.isEmpty ? 0 : 200)
+        let columnWidth = 230.0, rowHeight = 170.0
+
+        var spouses: [String: [String]] = [:]
+        var parents: [String: [String]] = [:]
+        for family in result.families {
+            if let husband = family.husband, let wife = family.wife {
+                spouses[husband, default: []].append(wife)
+                spouses[wife, default: []].append(husband)
+            }
+            for child in family.children { parents[child, default: []] += [family.husband, family.wife].compactMap { $0 } }
+        }
+
+        var cards: [String: BoardCard] = [:]
+        var columns: [String: Double] = [:]
+        let maxRow = rows.values.max() ?? 0
+        for row in 0...maxRow {
+            // Under their parents, roughly; then each person's spouses right beside them.
+            let members = result.people.map(\.id).filter { rows[$0] == row }
+            let sorted = members.sorted { a, b in
+                func center(_ id: String) -> Double {
+                    let xs = (parents[id] ?? []).compactMap { columns[$0] }
+                    return xs.isEmpty ? .infinity : xs.reduce(0, +) / Double(xs.count)
+                }
+                return center(a) < center(b)
+            }
+            var ordered: [String] = []
+            for id in sorted where !ordered.contains(id) {
+                ordered.append(id)
+                for spouse in spouses[id] ?? [] where rows[spouse] == row && !ordered.contains(spouse) { ordered.append(spouse) }
+            }
+            for (column, id) in ordered.enumerated() {
+                guard let person = peopleByID[id] else { continue }
+                columns[id] = Double(column)
+                let card = BoardCard(kind: .person, title: person.name,
+                                     x: originX + Double(column) * columnWidth, y: Double(row) * rowHeight, project: project)
+                card.sex = person.sex
+                card.date = GedcomImporter.lifeDates(person)
+                card.place = [person.birth, person.baptism].compactMap { $0?.place }.first { !$0.isEmpty } ?? ""
+                card.details = GedcomImporter.details(person, sources: result.sources)
+                context.insert(card)
+                cards[id] = card
+            }
+        }
+
+        for family in result.families {
+            let couple = [family.husband, family.wife].compactMap { $0 }.compactMap { cards[$0] }
+            if couple.count == 2 {
+                let link = BoardLink(from: couple[0], to: couple[1], role: .spouse, project: project)
+                if let marriage = family.marriage {
+                    if let year = BoardChecks.firstYear(in: marriage.date) { link.label = "m. \(year)" }
+                    link.note = "Married " + [marriage.date, marriage.place].filter { !$0.isEmpty }.joined(separator: ", ")
+                }
+                context.insert(link)
+            }
+            for child in family.children.compactMap({ cards[$0] }) {
+                for parent in couple { context.insert(BoardLink(from: parent, to: child, role: .parent, project: project)) }
+            }
+        }
+        save()
+        return (cards.count, result.families.count)
     }
 
     /// Imports a Scapple board as note cards, placed to the right of anything already on the board.

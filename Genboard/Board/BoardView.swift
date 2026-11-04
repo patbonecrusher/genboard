@@ -32,6 +32,10 @@ struct BoardView: View {
         project.cards.first { $0.persistentModelID == app.selectedCardID }
     }
 
+    private var selectedLink: BoardLink? {
+        project.links.first { $0.persistentModelID == app.selectedLinkID }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             toolbar
@@ -90,8 +94,15 @@ struct BoardView: View {
             }
             .fixedSize()
             .help("Contradictions in dates, ages and relationships")
-            Button { importScapple() } label: { Image(systemName: "square.and.arrow.down") }
-                .help("Import a Scapple board…")
+            Menu {
+                Button("GEDCOM Family Tree…") { importGedcom() }
+                Button("Scapple Board…") { importScapple() }
+            } label: {
+                Image(systemName: "square.and.arrow.down")
+            }
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("Import a family tree (GEDCOM) or a Scapple board")
             Spacer(minLength: 8)
             Button { setZoom(app.boardZoom / 1.25) } label: { Image(systemName: "minus.magnifyingglass") }
             Button { setZoom(1) } label: { Text("\(Int((zoom * 100).rounded()))%").monospacedDigit().frame(width: 44) }
@@ -117,7 +128,9 @@ struct BoardView: View {
             Color(nsColor: .underPageBackgroundColor)
                 .contentShape(Rectangle())
                 .gesture(panGesture)
-                .onTapGesture { app.selectedCardID = nil }
+                .onTapGesture(coordinateSpace: .named(Self.viewportSpace)) { location in
+                    tapBackground(at: boardPoint(fromView: location), frames: frames)
+                }
                 // The board is an overlay so its size (as big as all the cards) never affects layout:
                 // as a ZStack sibling it made the stack wider than the view, which then got centered.
                 .overlay(alignment: .topLeading) { boardContent(frames: frames, flaggedCards: flaggedCards) }
@@ -126,7 +139,7 @@ struct BoardView: View {
                 ContentUnavailableView {
                     Label("Empty board", systemImage: "rectangle.3.group")
                 } description: {
-                    Text("Add people, events and notes, drag pinned pages here from the Timeline, or import a Scapple board.")
+                    Text("Add people, events and notes, drag pinned pages here from the Timeline, or import a GEDCOM family tree or a Scapple board.")
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .allowsHitTesting(false)
@@ -141,6 +154,10 @@ struct BoardView: View {
 
             if let card = selectedCard {
                 CardEditor(card: card, project: project)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(10)
+            } else if let link = selectedLink {
+                LinkEditor(link: link, project: project)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(10)
             }
@@ -236,8 +253,9 @@ struct BoardView: View {
             let arrow = link.directed || [.parent, .child, .supports, .contradicts].contains(role)
             let outsideActive = activeTheory.map { theory in !link.hypotheses.contains { $0 === theory } } ?? false
             let opacity = link.isRefuted ? 0.35 : (outsideActive ? 0.3 : 1)
-            return .init(start: start, end: end, color: Self.color(for: role).opacity(opacity),
-                         dashed: role == .contradicts, arrow: arrow, label: label)
+            return .init(id: link.persistentModelID, start: start, end: end, color: Self.color(for: role).opacity(opacity),
+                         dashed: role == .contradicts, arrow: arrow, label: label,
+                         selected: link.persistentModelID == app.selectedLinkID)
         }
     }
 
@@ -290,6 +308,21 @@ struct BoardView: View {
             app.connect(selected, to: card)
         } else {
             app.selectedCardID = card.persistentModelID
+        }
+    }
+
+    /// A click on empty board selects the connection under the pointer, if any, or clears the selection.
+    private func tapBackground(at point: CGPoint, frames: [PersistentIdentifier: CGRect]) {
+        let tolerance = 6 / zoom
+        let hit = linkGeometry(frames: frames)
+            .map { ($0.id, $0.distance(to: point)) }
+            .filter { $0.1 <= tolerance }
+            .min { $0.1 < $1.1 }
+        if let hit {
+            app.selectedLinkID = hit.0
+        } else {
+            app.selectedCardID = nil
+            app.selectedLinkID = nil
         }
     }
 
@@ -389,6 +422,7 @@ struct BoardView: View {
             } else if let url = URL(string: item), url.scheme?.hasPrefix("http") == true {
                 let card = app.addCard(.evidence, at: point, in: project)
                 card.urlString = item
+                card.sourceType = SourceType.guess(from: item)
                 card.title = url.host() ?? item
             } else {
                 continue
@@ -398,6 +432,19 @@ struct BoardView: View {
             point.y += 30
         }
         return added
+    }
+
+    private func importGedcom() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [UTType(filenameExtension: "ged") ?? .plainText]
+        panel.message = "Choose a GEDCOM file exported from FamilySearch, Ancestry or other genealogy software"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try app.importGedcom(from: url, into: project)
+            fitToView()
+        } catch {
+            importError = error.localizedDescription
+        }
     }
 
     private func importScapple() {
@@ -417,12 +464,26 @@ struct BoardView: View {
 /// Connection lines, drawn underneath the cards.
 struct BoardLinksLayer: View {
     struct Segment {
+        let id: PersistentIdentifier
         let start: CGPoint
         let end: CGPoint
         let color: Color
         let dashed: Bool
         let arrow: Bool
         let label: String
+        var selected = false
+
+        /// Distance from `point` to the line, or 0 when the point is on the line's label.
+        func distance(to point: CGPoint) -> CGFloat {
+            let middle = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
+            if !label.isEmpty, abs(point.x - middle.x) < CGFloat(label.count) * 3.5 + 4, abs(point.y - middle.y) < 8 {
+                return 0
+            }
+            let dx = end.x - start.x, dy = end.y - start.y
+            let lengthSquared = dx * dx + dy * dy
+            let t = lengthSquared == 0 ? 0 : max(0, min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared))
+            return hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy))
+        }
     }
 
     let links: [Segment]
@@ -433,8 +494,11 @@ struct BoardLinksLayer: View {
                 var line = Path()
                 line.move(to: link.start)
                 line.addLine(to: link.end)
+                if link.selected {
+                    context.stroke(line, with: .color(.accentColor.opacity(0.35)), style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                }
                 context.stroke(line, with: .color(link.color),
-                               style: StrokeStyle(lineWidth: 1.5, dash: link.dashed ? [6, 4] : []))
+                               style: StrokeStyle(lineWidth: link.selected ? 2.5 : 1.5, dash: link.dashed ? [6, 4] : []))
                 if link.arrow {
                     let angle = atan2(link.end.y - link.start.y, link.end.x - link.start.x)
                     var head = Path()
@@ -537,8 +601,17 @@ struct BoardCardView: View {
                     }
                 }
             }
-            if card.kind == .evidence, let host = URL(string: card.urlString)?.host() {
-                Text(host).font(.caption2).foregroundStyle(.tertiary)
+            if card.kind == .evidence {
+                HStack(spacing: 6) {
+                    if let host = URL(string: card.urlString)?.host() {
+                        Text(host).foregroundStyle(.tertiary)
+                    }
+                    Spacer(minLength: 0)
+                    Text(card.evidenceRating)
+                        .foregroundStyle(card.sourceType == .unknown ? .tertiary : .secondary)
+                        .help(card.citation.isEmpty ? "Source quality" : card.citation)
+                }
+                .font(.caption2)
             }
         }
         .padding(8)
@@ -646,6 +719,9 @@ struct CardEditor: View {
                 }
                 .pickerStyle(.segmented)
 
+                if card.kind == .evidence {
+                    SourceFields(card: card)
+                }
                 if let url = URL(string: card.urlString), !card.urlString.isEmpty {
                     Button("Open Page", systemImage: "safari") { app.openInBrowser(url) }
                 }
@@ -671,7 +747,7 @@ struct CardEditor: View {
                 Divider()
                 Text("Connections").font(.subheadline.bold())
                 if connections.isEmpty {
-                    Text("Shift-click another card to connect it, or use Connect To below.")
+                    Text("Drag from the handle on the card’s edge to another card, or shift-click it. Click a line on the board to edit it.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -783,6 +859,114 @@ private struct ConnectionRow: View {
                 .buttonStyle(.borderless)
                 .help("Remove connection")
         }
+    }
+}
+
+/// The citation and source-quality fields of an evidence card.
+private struct SourceFields: View {
+    @Bindable var card: BoardCard
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Source").font(.subheadline.bold())
+            TextField("Citation: record, date, place, page", text: $card.citation, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .lineLimit(1...4)
+            TextField("Repository, e.g. Drouin Collection", text: $card.repository)
+                .textFieldStyle(.roundedBorder)
+            Picker("Source", selection: Binding(get: { card.sourceType }, set: { card.sourceType = $0 })) {
+                ForEach(SourceType.allCases) { Text($0.label).tag($0) }
+            }
+            .help(SourceType.allCases.dropFirst().map { "\($0.label): \($0.explanation)" }.joined(separator: "\n"))
+            Picker("Information", selection: Binding(get: { card.information }, set: { card.information = $0 })) {
+                ForEach(InformationType.allCases) { Text($0.label).tag($0) }
+            }
+            .help(InformationType.allCases.dropFirst().map { "\($0.label): \($0.explanation)" }.joined(separator: "\n"))
+            Text(card.sourceType == .unknown ? "Rate the source so theories can weigh it." : card.sourceType.explanation)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// Floating editor for a connection clicked on the board.
+struct LinkEditor: View {
+    @Environment(AppState.self) private var app
+    @Bindable var link: BoardLink
+    let project: ResearchProject
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Connection").font(.headline)
+                Spacer()
+                Button { app.selectedLinkID = nil } label: { Image(systemName: "xmark.circle.fill") }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 6) {
+                endButton(link.from)
+                Picker("Role", selection: Binding(get: { link.role }, set: { link.role = $0 })) {
+                    ForEach(LinkRole.allCases) { Text($0.label).tag($0) }
+                }
+                .labelsHidden()
+                .fixedSize()
+                endButton(link.to)
+            }
+            Button("Swap Direction", systemImage: "arrow.left.arrow.right") {
+                (link.from, link.to) = (link.to, link.from)
+                app.save()
+            }
+            .buttonStyle(.borderless)
+            .help("“A parent of B” becomes “B parent of A”")
+            TextField("Label on the line, e.g. father, witness", text: $link.label)
+                .textFieldStyle(.roundedBorder)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Note").font(.caption).foregroundStyle(.secondary)
+                TextEditor(text: $link.note)
+                    .font(.callout)
+                    .frame(height: 80)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(.quaternary))
+            }
+            Toggle("Draw an arrow", isOn: $link.directed)
+                .toggleStyle(.checkbox)
+                .disabled([.parent, .child, .supports, .contradicts].contains(link.role))
+            if !project.hypotheses.isEmpty {
+                Divider()
+                Text("Theories").font(.subheadline.bold())
+                ForEach(project.hypotheses.sorted { $0.createdAt < $1.createdAt }) { theory in
+                    Toggle(isOn: Binding(get: { link.hypotheses.contains { $0 === theory } },
+                                         set: { isMember in
+                                             if isMember { link.hypotheses.append(theory) } else { link.hypotheses.removeAll { $0 === theory } }
+                                             app.save()
+                                         })) {
+                        HStack(spacing: 5) {
+                            Circle().fill(AppState.theoryColor(theory)).frame(width: 8, height: 8)
+                            Text(theory.title).lineLimit(1)
+                        }
+                    }
+                    .toggleStyle(.checkbox)
+                }
+            }
+            Divider()
+            Button("Delete Connection", systemImage: "trash", role: .destructive) { app.delete(link) }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.red)
+        }
+        .padding(12)
+        .frame(width: 300)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary))
+        .shadow(radius: 8, y: 2)
+    }
+
+    private func endButton(_ card: BoardCard?) -> some View {
+        Button(card?.displayName ?? "?") {
+            if let card { app.selectedCardID = card.persistentModelID }
+        }
+        .buttonStyle(.link)
+        .lineLimit(1)
+        .help("Select this card")
     }
 }
 

@@ -196,6 +196,81 @@ nonisolated enum LinkRole: String, CaseIterable, Identifiable {
     }
 }
 
+/// What kind of source a record is, following the Genealogical Proof Standard.
+nonisolated enum SourceType: String, CaseIterable, Identifiable {
+    case unknown = "", original, derivative, authored
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .unknown: "Not rated"
+        case .original: "Original"
+        case .derivative: "Derivative"
+        case .authored: "Authored"
+        }
+    }
+
+    var explanation: String {
+        switch self {
+        case .unknown: "Not rated yet"
+        case .original: "The record itself, or an image of it: a parish register page, a census sheet, a gravestone"
+        case .derivative: "Copied or reworded from a record: an index, a transcription, an abstract"
+        case .authored: "Someone's conclusions: a compiled tree, a memorial page, a family history"
+        }
+    }
+
+    var weight: Double {
+        switch self {
+        case .unknown: 0.5
+        case .original: 1
+        case .derivative: 0.6
+        case .authored: 0.3
+        }
+    }
+
+    /// A first guess from where the page came from; the researcher can always change it.
+    static func guess(from urlString: String) -> SourceType {
+        let url = urlString.lowercased()
+        if url.contains("genealogiequebec.com") || url.contains("/ark:/61903/3:") || url.contains("/film/") { return .original }
+        if url.contains("/ark:/61903/1:") || url.contains("familysearch.org/search") { return .derivative }
+        if url.contains("familysearch.org/tree") || url.contains("wikitree.com") || url.contains("findagrave.com")
+            || url.contains("geni.com") || url.contains("ancestry.") { return .authored }
+        return .unknown
+    }
+}
+
+/// How the informant knew what the record says.
+nonisolated enum InformationType: String, CaseIterable, Identifiable {
+    case unknown = "", primary, secondary, undetermined
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .unknown: "Not rated"
+        case .primary: "Primary"
+        case .secondary: "Secondary"
+        case .undetermined: "Undetermined"
+        }
+    }
+
+    var explanation: String {
+        switch self {
+        case .unknown: "Not rated yet"
+        case .primary: "From someone who was there: the priest at the baptism, the parents"
+        case .secondary: "Heard from others: an age at death, a birthplace given decades later"
+        case .undetermined: "The informant isn't known"
+        }
+    }
+
+    var weight: Double {
+        switch self {
+        case .primary: 1
+        case .secondary: 0.6
+        case .unknown, .undetermined: 0.8
+        }
+    }
+}
+
 @Model
 final class BoardCard {
     var kindRaw: String
@@ -218,6 +293,12 @@ final class BoardCard {
     var imageFile: String?
     /// The page an evidence card points to; kept even if the visit is deleted.
     var urlString: String = ""
+    /// For evidence: the full citation, e.g. "Baptism of Émilie Tremblay, 3 Feb 1861, St-Hugues parish register, f. 12".
+    var citation: String = ""
+    /// For evidence: where the record is held, e.g. "Drouin Collection, Généalogie Québec".
+    var repository: String = ""
+    var sourceTypeRaw: String = SourceType.unknown.rawValue
+    var informationRaw: String = InformationType.unknown.rawValue
     var createdAt: Date
     var project: ResearchProject?
     var visit: Visit?
@@ -250,6 +331,16 @@ final class BoardCard {
     var sex: Sex {
         get { Sex(rawValue: sexRaw) ?? .unknown }
         set { sexRaw = newValue.rawValue }
+    }
+
+    var sourceType: SourceType {
+        get { SourceType(rawValue: sourceTypeRaw) ?? .unknown }
+        set { sourceTypeRaw = newValue.rawValue }
+    }
+
+    var information: InformationType {
+        get { InformationType(rawValue: informationRaw) ?? .unknown }
+        set { informationRaw = newValue.rawValue }
     }
 
     /// A one-line name for menus, connection lists and the AI context.
@@ -348,7 +439,70 @@ final class Hypothesis {
     }
 }
 
+/// A theory's evidence summed by quality: one original record with primary information counts
+/// as 1, an online tree about 0.25, a note of the researcher's own 0.2.
+nonisolated struct EvidenceStrength {
+    let forScore: Double
+    let againstScore: Double
+    let forCount: Int
+    let againstCount: Int
+
+    init(supporting: [BoardCard], contradicting: [BoardCard]) {
+        forScore = supporting.map(\.evidenceWeight).reduce(0, +)
+        againstScore = contradicting.map(\.evidenceWeight).reduce(0, +)
+        forCount = supporting.count
+        againstCount = contradicting.count
+    }
+
+    enum Level: Int, Comparable {
+        case none, contested, weak, fair, strong
+        static func < (a: Level, b: Level) -> Bool { a.rawValue < b.rawValue }
+    }
+
+    var level: Level {
+        if forCount == 0 && againstCount == 0 { return .none }
+        if againstScore >= forScore * 0.6 { return .contested }
+        let net = forScore - againstScore
+        if net >= 1.5 { return .strong }
+        if net >= 0.7 { return .fair }
+        return .weak
+    }
+
+    var label: String {
+        switch level {
+        case .none: "No evidence yet"
+        case .contested: "Contested"
+        case .weak: "Weak"
+        case .fair: "Fair"
+        case .strong: "Strong"
+        }
+    }
+
+    /// "2 for, 1 against", for lists.
+    var counts: String {
+        "\(forCount) for" + (againstCount > 0 ? ", \(againstCount) against" : "")
+    }
+}
+
 extension BoardCard {
+    /// How much this card counts as evidence, from 0 to 1: source type times information type for
+    /// evidence cards. Notes are the researcher's own reasoning and count for little.
+    var evidenceWeight: Double {
+        switch kind {
+        case .evidence: sourceType.weight * information.weight
+        case .note: 0.2
+        case .person, .event: 0.3
+        }
+    }
+
+    /// "Original · Primary", for evidence cards.
+    var evidenceRating: String {
+        guard kind == .evidence else { return "" }
+        let parts = [sourceType == .unknown ? nil : sourceType.label, information == .unknown ? nil : information.label]
+            .compactMap { $0 }
+        return parts.isEmpty ? "Not rated" : parts.joined(separator: " · ")
+    }
+
     /// Removes repeats, keeping the first occurrence of each card.
     static func unique(_ cards: [BoardCard]) -> [BoardCard] {
         var seen = Set<ObjectIdentifier>()
@@ -359,6 +513,13 @@ extension BoardCard {
     var isHiddenByTheories: Bool { !hypotheses.isEmpty && hypotheses.allSatisfy { !$0.isVisible } }
     /// Greyed out when every theory it belongs to has been refuted.
     var isRefuted: Bool { !hypotheses.isEmpty && hypotheses.allSatisfy { $0.status == .refuted } }
+}
+
+extension Hypothesis {
+    /// The weight of the evidence for and against, from the quality of each source.
+    var strength: EvidenceStrength {
+        EvidenceStrength(supporting: evidence(.supports), contradicting: evidence(.contradicts))
+    }
 }
 
 extension BoardLink {

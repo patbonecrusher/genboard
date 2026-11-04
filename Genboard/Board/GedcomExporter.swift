@@ -79,6 +79,8 @@ enum GedcomExporter {
             }
             for evidence in person.incoming.filter({ $0.role == .supports }).compactMap(\.from) where evidence.kind == .evidence {
                 out.line(1, "SOUR", sourceID(evidence))
+                if !evidence.citation.isEmpty { out.line(2, "PAGE", evidence.citation) }
+                if let quality = quality(of: evidence) { out.line(2, "QUAY", "\(quality)") }
             }
         }
 
@@ -100,7 +102,11 @@ enum GedcomExporter {
         for (index, source) in sources.enumerated() {
             out.line(0, "@S\(index + 1)@", "SOUR")
             out.line(1, "TITL", source.title.isEmpty ? source.displayName : source.title)
+            if !source.repository.isEmpty { out.line(1, "PUBL", source.repository) }
             if !source.urlString.isEmpty { out.line(1, "NOTE", source.urlString) }
+            if source.sourceType != .unknown || source.information != .unknown {
+                out.line(1, "NOTE", "Source: \(source.evidenceRating).")
+            }
             if let transcription = source.visit?.transcription, !transcription.isEmpty {
                 out.text(1, "TEXT", transcription)
             } else if !source.details.isEmpty {
@@ -167,6 +173,18 @@ enum GedcomExporter {
     }
 
     // MARK: Values
+
+    /// GEDCOM's 0–3 certainty scale: 3 for an original record with primary information, down to 0
+    /// for an authored work. Nil when the source isn't rated.
+    static func quality(of card: BoardCard) -> Int? {
+        switch (card.sourceType, card.information) {
+        case (.unknown, .unknown): nil
+        case (.authored, _): 0
+        case (_, .secondary): 1
+        case (.original, .primary): 3
+        default: 2
+        }
+    }
 
     /// "Olivine Girard" → "Olivine /Girard/" (the last word taken as the surname).
     static func gedcomName(_ name: String) -> String {

@@ -65,6 +65,7 @@ private struct TheoryRow: View {
                 .contentShape(Rectangle())
                 .onTapGesture { app.toggleActive(theory) }
                 .help(isActive ? "Click to stop focusing on this theory" : "Click to focus on this theory")
+            StrengthMeter(strength: theory.strength)
             Image(systemName: theory.status.symbol)
                 .foregroundStyle(statusColor)
                 .help(theory.status.label)
@@ -120,6 +121,14 @@ private struct TheoryDetail: View {
             Text("\(theory.cards.count) cards · \(theory.links.count) connections")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            let strength = theory.strength
+            HStack(spacing: 6) {
+                StrengthMeter(strength: strength)
+                Text("Evidence: \(strength.label.lowercased()) (\(strength.counts))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .help("Weighed by source quality: an original record with primary information counts most, an online tree or a note little. Rate sources in each evidence card.")
 
             evidenceList("Evidence for", color: .green, cards: theory.evidence(.supports))
             evidenceList("Evidence against", color: .red,
@@ -159,12 +168,41 @@ private struct TheoryDetail: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.caption.bold()).foregroundStyle(color)
                 ForEach(cards, id: \.persistentModelID) { card in
-                    Button(card.displayName) { app.selectedCardID = card.persistentModelID }
-                        .buttonStyle(.borderless)
-                        .font(.caption)
-                        .lineLimit(1)
+                    HStack(spacing: 4) {
+                        Button(card.displayName) { app.selectedCardID = card.persistentModelID }
+                            .buttonStyle(.borderless)
+                            .lineLimit(1)
+                        Spacer(minLength: 4)
+                        if card.kind == .evidence {
+                            Text(card.evidenceRating).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                    }
+                    .font(.caption)
                 }
             }
         }
+    }
+}
+
+/// Four bars filled by the strength of a theory's evidence; red when it's contested.
+struct StrengthMeter: View {
+    let strength: EvidenceStrength
+
+    var body: some View {
+        let filled = switch strength.level {
+        case .none: 0
+        case .contested, .weak: 1
+        case .fair: 2
+        case .strong: 4
+        }
+        let color: Color = strength.level == .contested ? .red : (strength.level >= .fair ? .green : .orange)
+        HStack(alignment: .bottom, spacing: 1.5) {
+            ForEach(0..<4, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(index < filled ? color : Color.secondary.opacity(0.25))
+                    .frame(width: 3, height: 4 + CGFloat(index) * 2.5)
+            }
+        }
+        .help("Evidence: \(strength.label.lowercased()) (\(strength.counts))")
     }
 }
