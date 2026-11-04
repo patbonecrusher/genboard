@@ -17,7 +17,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 DRY=0; [[ ${1:-} == --dry-run ]] && DRY=1
+ENV_TAP_DIR="${TAP_DIR:-}"      # a TAP_DIR set on the command line wins over the defaults files
 for f in "$HOME/.config/mac-app-kit/defaults.env" ./.release.env; do [[ -f $f ]] && source "$f"; done
+TAP_DIR="${ENV_TAP_DIR:-${TAP_DIR:-}}"
 : "${TEAM_ID:?set TEAM_ID (Apple team id) in the environment or .release.env}"
 
 VERSION="$(sed -nE 's/^ *MARKETING_VERSION: *"?([^"]+)"?.*/\1/p' project.yml)"
