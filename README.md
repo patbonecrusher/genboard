@@ -6,6 +6,15 @@ and write where you left off when you close a session. See [DESIGN.md](DESIGN.md
 
 Website: https://patbonecrusher.github.io/genboard/
 
+## Install
+
+```sh
+brew install --cask patbonecrusher/tap/genboard
+```
+
+Or download the signed, notarized zip from [Releases](https://github.com/patbonecrusher/genboard/releases/latest).
+Requires macOS 15 or later (Apple silicon or Intel).
+
 ## Build
 
 Requires Xcode 26+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
@@ -20,6 +29,17 @@ xcodebuild -scheme Genboard -derivedDataPath build build && open build/Build/Pro
 
 The app icon is drawn in code by `tools/make_icon.swift`; run `tools/make_icon.sh` after editing it
 to regenerate every size in `Genboard/Assets.xcassets/AppIcon.appiconset`.
+
+## Releasing
+
+1. Bump `MARKETING_VERSION` in `project.yml` and write `RELEASE_NOTES.md`; commit.
+2. `tools/release.sh` builds a universal Release app signed with the Developer ID certificate and the
+   hardened runtime, notarizes and staples it, tags `v<version>`, publishes the GitHub release with
+   `build/Genboard-<version>.zip`, and updates `Casks/genboard.rb` in the Homebrew tap at `$TAP_DIR`.
+   `tools/release.sh --dry-run` stops after notarizing.
+
+`TEAM_ID`, `TAP_DIR` and the notarization credentials (`ASC_KEY_ID`/`ASC_ISSUER_ID`, or a
+`NOTARY_PROFILE`) come from the environment, `~/.config/mac-app-kit/defaults.env` or `.release.env`.
 
 ## Website
 

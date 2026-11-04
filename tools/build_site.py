@@ -63,14 +63,19 @@ page("index.html", "Genboard: a research workbench for genealogy",
 <h1>Genboard</h1>
 <p class="lede">A native macOS workbench for family-history research. Browse FamilySearch, WikiTree, Find a Grave and the Drouin collection in research sessions, keep track of what each source says, test competing theories on a board, and export the result as a family tree.</p>
 
-<div class="card">
-  <h3>Get Genboard</h3>
-  <p>There's no signed download yet, so build it from source. You need Xcode 26 and <a href="https://github.com/yonaskolb/XcodeGen">XcodeGen</a> (<code>brew install xcodegen</code>).</p>
-  <pre><code>git clone {REPO}
-cd genboard &amp;&amp; xcodegen generate
-open Genboard.xcodeproj</code></pre>
+<div class="install">
+  <div class="card">
+    <h3>Homebrew</h3>
+    <p>Installs the app and keeps it up to date with <code>brew upgrade</code>.</p>
+    <pre><code>brew install --cask patbonecrusher/tap/genboard</code></pre>
+  </div>
+  <div class="card">
+    <h3>Direct download</h3>
+    <p>Signed and notarized by Apple. Unzip and drag to Applications.</p>
+    <a class="button" href="{REPO}/releases/latest">Download Genboard</a>
+  </div>
 </div>
-<p class="meta">Requires macOS 15 Sequoia or later. Genboard is in early development, so expect rough edges.</p>
+<p class="meta">Requires macOS 15 Sequoia or later, on Apple silicon or Intel. Genboard is in early development, so expect rough edges. You can also <a href="{REPO}#build">build it from source</a>.</p>
 
 <div class="shots">
   <figure><img src="screenshot-1.png" alt="The research board: person, event, evidence and note cards connected by parent, spouse, supports and contradicts lines, with a Theories panel and a Checks panel" width="2400" height="1500"><figcaption>The research board: people, events and records connected by what they mean, two competing theories about a father, and a check that caught a burial dated before the death.</figcaption></figure>
