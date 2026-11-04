@@ -69,6 +69,7 @@ final class AppState {
     @ObservationIgnored private var stressProject: ResearchProject?
 
     init() {
+        if !Self.isSmokeTest { BundleIDMigration.run() }
         do {
             // An explicit file: the unsandboxed default (Application Support/default.store) is shared
             // with every other unsandboxed SwiftData app on the Mac.
