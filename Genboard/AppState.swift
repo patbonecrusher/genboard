@@ -1,6 +1,7 @@
 import AppKit
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// What to do once the close-session sheet has been completed.
 enum PendingAction {
@@ -68,6 +69,8 @@ final class AppState {
     /// The project whose report sheet is showing.
     var reportProject: ResearchProject?
     var showSearch = false
+    /// Result of a backup or restore, shown in an alert.
+    var archiveMessage: String?
     /// A card the board should scroll to; BoardView centers it and clears this.
     var boardFocusID: PersistentIdentifier?
     /// A search result in another project, shown once that project's session is open.
@@ -693,6 +696,45 @@ final class AppState {
     func setMark(_ mark: VisitMark, on visit: Visit) {
         visit.mark = mark
         save()
+    }
+}
+
+// MARK: - Backup and restore
+
+extension AppState {
+    var allProjects: [ResearchProject] {
+        (try? context.fetch(FetchDescriptor<ResearchProject>(sortBy: [SortDescriptor(\.createdAt)]))) ?? []
+    }
+
+    /// Saves projects (one, or all of them for a full backup) to a `.genboard` file.
+    func exportArchive(_ projects: [ResearchProject], suggestedName: String) {
+        guard !projects.isEmpty else { return }
+        save()
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [UTType(filenameExtension: ProjectArchive.fileExtension) ?? .zip]
+        panel.nameFieldStringValue = suggestedName.replacingOccurrences(of: "/", with: "-") + "." + ProjectArchive.fileExtension
+        panel.message = "Sessions, pages, screenshots, the board and theories go into one file you can keep or move to another Mac."
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try ProjectArchive.write(projects, to: url)
+            archiveMessage = "Saved \(projects.count == 1 ? "“\(projects[0].name)”" : "\(projects.count) projects") to \(url.lastPathComponent)."
+        } catch {
+            archiveMessage = "Couldn't save the backup: \(error.localizedDescription)"
+        }
+    }
+
+    /// Adds the projects in a `.genboard` file; existing projects are left alone.
+    func importArchive() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [UTType(filenameExtension: ProjectArchive.fileExtension) ?? .zip]
+        panel.message = "Choose a Genboard backup. Its projects are added next to yours; nothing is replaced."
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let projects = try ProjectArchive.read(from: url, into: context)
+            archiveMessage = "Restored " + projects.map { "“\($0.name)”" }.joined(separator: ", ") + "."
+        } catch {
+            archiveMessage = "Couldn't restore the backup: \(error.localizedDescription)"
+        }
     }
 }
 

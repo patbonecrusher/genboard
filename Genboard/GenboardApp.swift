@@ -39,6 +39,16 @@ struct ResearchCommands: Commands {
                 .keyboardShortcut("t")
                 .disabled(appState.activeSession == nil)
         }
+        CommandGroup(replacing: .importExport) {
+            Button("Export Project…") {
+                if let project = appState.activeSession?.project { appState.exportArchive([project], suggestedName: project.name) }
+            }
+            .disabled(appState.activeSession?.project == nil)
+            Button("Back Up All Projects…") {
+                appState.exportArchive(appState.allProjects, suggestedName: "Genboard backup \(Date.now.formatted(.iso8601.year().month().day()))")
+            }
+            Button("Restore from Backup…") { appState.importArchive() }
+        }
         CommandMenu("Research") {
             Button("Search All Research…") { appState.showSearch = true }
                 .keyboardShortcut("f", modifiers: [.command, .shift])

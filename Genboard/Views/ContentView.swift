@@ -56,6 +56,14 @@ struct ContentView: View {
         .sheet(isPresented: $app.showSearch) {
             SearchSheet()
         }
+        .alert("Backup", isPresented: Binding(
+            get: { app.archiveMessage != nil },
+            set: { if !$0 { app.archiveMessage = nil } }
+        )) {
+            Button("OK") {}
+        } message: {
+            Text(app.archiveMessage ?? "")
+        }
         .alert("AI error", isPresented: Binding(
             get: { app.aiErrorMessage != nil },
             set: { if !$0 { app.aiErrorMessage = nil } }

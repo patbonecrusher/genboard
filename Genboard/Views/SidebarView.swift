@@ -34,6 +34,7 @@ struct SidebarView: View {
                         .contextMenu {
                             Button("New Session…") { newSessionProject = project }
                             Button("Export Research Report…") { app.reportProject = project }
+                            Button("Export Project…") { app.exportArchive([project], suggestedName: project.name) }
                             Divider()
                             Button("Delete Project…", role: .destructive) { projectToDelete = project }
                         }
