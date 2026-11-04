@@ -171,10 +171,59 @@ more than two parents on the board exports the first two plus a note naming
 all candidates. Person cards gained a Sex field (set from roles by the AI
 suggestions) so parents can be placed as HUSB/WIFE.
 
+**GEDCOM import** (board toolbar ▸ import ▸ GEDCOM Family Tree…): INDI and
+FAM records become person cards and parent/spouse connections, laid out by
+generation (roots on top, children under their lowest parent, spouses on a
+shared row, ordered under their parents). Life dates are written in the form
+the checks read ("1817–1880", "b. ~1862"); full dates, places, notes and
+source titles go in the card's notes; the marriage year labels the spouse line.
+
+### Citations and evidence weight
+
+Evidence cards carry a citation, a repository and two Genealogical Proof
+Standard ratings: source (original / derivative / authored) and information
+(primary / secondary / undetermined). The source type is guessed from the URL
+when the card is created (Drouin and FamilySearch images → original,
+FamilySearch indexes → derivative, trees and WikiTree → authored). Weight =
+source × information (original + primary = 1; authored ≈ 0.25; notes 0.2).
+A theory's **strength** sums the distinct evidence for and against: Strong
+(net ≥ 1.5), Fair (≥ 0.7), Weak, or Contested (against ≥ 60% of for), shown
+as bars in the Theories panel. Ratings go to GEDCOM as PAGE and QUAY 0–3, and
+to the AI context.
+
+### Connections
+
+Clicking a line or its label (hit-tested within 6 screen points) selects it
+and opens a connection editor: role, swap direction, label, note, arrow,
+theories, delete.
+
+## Reports, search, backups
+
+- **Research report** (⇧⌘R): built once as blocks (headings, paragraphs,
+  bullets), written out as Markdown, HTML, or a paginated PDF through AppKit's
+  text system. Whole project, or one theory with only its people and sources.
+- **Search** (⇧⌘F): every project, case- and accent-insensitive, all words
+  must match; theories and cards rank first. Results open in place
+  (`AppState.reveal`), switching project through the normal close-session
+  flow when needed.
+- **Backups**: `.genboard` = zip of `project.json` (Codable mirror of every
+  model, with archive-local IDs for relationships) plus the screenshots.
+  Restoring always adds projects, renaming on a name clash, and gives
+  screenshots new file names.
+
+## Updates
+
+Sparkle 2 (Swift package). The appcast lives at `docs/appcast.xml` on the
+website and is signed with an EdDSA key kept in the developer's login
+keychain; `tools/release.sh` re-signs Sparkle's helpers with the Developer
+ID (notarization needs it), signs the zip with `sign_update`, and adds the
+item with `tools/appcast.py`. Debug builds don't check unless given
+`-GenboardFeedURL`. The Homebrew cask declares `auto_updates true`.
+
 ## Not built yet
 
-- Importing GEDCOM or FamilySearch trees onto the board.
-- Local MLX model as a second AI provider (summaries, privacy).
+- FamilySearch tree import through its API.
+- iCloud sync.
 
 ## AI assistant
 
@@ -203,8 +252,11 @@ Design rules:
 - The project context snapshot is sent inside each user turn, not the system
   prompt, so the conversation stays append-only (prompt caching works, and
   replayed thinking blocks stay valid).
-- Local MLX is the planned second provider (64GB Mac makes 30B-class models
-  practical) for summaries and private work.
+- **Local model**: `LocalProvider` talks to `mlx_lm.server` (or LM Studio /
+  Ollama) over the OpenAI-style `/v1/chat/completions`. Choosing "Local model
+  (MLX)" for a task routes it there. Turns stay in Claude's block format, so a
+  chat can switch between the two; images are dropped for text-only models;
+  structured output asks for the schema in the prompt and extracts the JSON.
 
 ## Tech
 

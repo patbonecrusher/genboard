@@ -66,7 +66,12 @@ struct SearchSheet: View {
                 .padding(.vertical, 6)
         }
         .frame(width: 640, height: 480)
-        .onAppear { fieldFocused = true }
+        .onAppear {
+            fieldFocused = true
+            #if DEBUG
+            if let demo = UserDefaults.standard.string(forKey: "GenboardDemoSearch") { query = demo }
+            #endif
+        }
     }
 
     private func open(_ hits: [ResearchSearch.Hit]) {

@@ -1,5 +1,6 @@
 #!/bin/zsh
-# Cut a direct-download release: notarized Developer ID build → GitHub release → Homebrew cask update.
+# Cut a direct-download release: notarized Developer ID build → GitHub release → Sparkle appcast
+# on the website → Homebrew cask update.
 #
 #   tools/release.sh            version comes from MARKETING_VERSION in project.yml
 #   tools/release.sh --dry-run  build, sign and notarize only (leaves build/Genboard-<version>.zip)
@@ -13,6 +14,8 @@
 #   ASC_KEY_ID / ASC_ISSUER_ID    notarize with an App Store Connect API key
 #                                 (the .p8 must be in ~/.appstoreconnect/private_keys), or
 #   NOTARY_PROFILE                a notarytool keychain profile (default notarize-profile)
+#
+# The Sparkle signing key lives in the login keychain (Sparkle's generate_keys put it there).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -23,6 +26,7 @@ TAP_DIR="${ENV_TAP_DIR:-${TAP_DIR:-}}"
 : "${TEAM_ID:?set TEAM_ID (Apple team id) in the environment or .release.env}"
 
 VERSION="$(sed -nE 's/^ *MARKETING_VERSION: *"?([^"]+)"?.*/\1/p' project.yml)"
+BUILD="$(sed -nE 's/^ *CURRENT_PROJECT_VERSION: *"?([^"]+)"?.*/\1/p' project.yml)"
 TAG="v$VERSION"
 BUILD_DIR="$PWD/build/release"
 APP="$BUILD_DIR/Build/Products/Release/Genboard.app"
@@ -32,6 +36,9 @@ if [[ $DRY == 0 ]]; then
   : "${TAP_DIR:?set TAP_DIR (path to the homebrew tap checkout) in the environment or .release.env}"
   if [[ -n "$(git status --porcelain)" ]]; then echo "error: working tree not clean" >&2; exit 1; fi
   if gh release view "$TAG" >/dev/null 2>&1; then echo "error: release $TAG already exists" >&2; exit 1; fi
+  if grep -q "<sparkle:version>$BUILD</sparkle:version>" docs/appcast.xml 2>/dev/null; then
+    echo "error: build $BUILD is already in docs/appcast.xml; bump CURRENT_PROJECT_VERSION" >&2; exit 1
+  fi
 fi
 
 IDENTITY="$(security find-identity -v -p codesigning | grep 'Developer ID Application' | grep "($TEAM_ID)" | head -1 | sed -E 's/.*"(.*)".*/\1/')"
@@ -50,6 +57,16 @@ xcodebuild -project Genboard.xcodeproj -scheme Genboard -configuration Release \
   ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
   -quiet build
 
+# Sparkle ships its helpers ad-hoc signed; notarization needs every piece signed with the
+# Developer ID, the hardened runtime and a timestamp, inside-out, then the app again.
+FW="$APP/Contents/Frameworks/Sparkle.framework"
+SIGN=(codesign --force --sign "$IDENTITY" --options runtime --timestamp)
+"${SIGN[@]}" "$FW/Versions/B/XPCServices/Installer.xpc"
+"${SIGN[@]}" --preserve-metadata=entitlements "$FW/Versions/B/XPCServices/Downloader.xpc"
+"${SIGN[@]}" "$FW/Versions/B/Autoupdate"
+"${SIGN[@]}" "$FW/Versions/B/Updater.app"
+"${SIGN[@]}" "$FW"
+"${SIGN[@]}" --preserve-metadata=entitlements "$APP"
 codesign --verify --strict --deep --verbose=2 "$APP"
 lipo -info "$APP/Contents/MacOS/Genboard"
 
@@ -84,6 +101,14 @@ if [[ -f RELEASE_NOTES.md ]]; then
 else
   gh release create "$TAG" "$ZIP" --title "Genboard $VERSION" --generate-notes
 fi
+
+echo "==> Publishing the update to the Sparkle appcast"
+SIGNATURE="$("$BUILD_DIR/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update" "$ZIP")"
+python3 tools/appcast.py --version "$VERSION" --build "$BUILD" --signature "$SIGNATURE" --notes RELEASE_NOTES.md \
+  --url "https://github.com/patbonecrusher/genboard/releases/download/$TAG/${ZIP:t}"
+git add docs/appcast.xml
+git commit -q -m "Appcast: Genboard $VERSION"
+git push -q
 
 echo "==> Updating Homebrew cask"
 CASK="$TAP_DIR/Casks/genboard.rb"

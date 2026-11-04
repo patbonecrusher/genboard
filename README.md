@@ -32,14 +32,30 @@ to regenerate every size in `Genboard/Assets.xcassets/AppIcon.appiconset`.
 
 ## Releasing
 
-1. Bump `MARKETING_VERSION` in `project.yml` and write `RELEASE_NOTES.md`; commit.
+1. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` (Sparkle compares the build number) in
+   `project.yml` and write `RELEASE_NOTES.md`; commit.
 2. `tools/release.sh` builds a universal Release app signed with the Developer ID certificate and the
-   hardened runtime, notarizes and staples it, tags `v<version>`, publishes the GitHub release with
-   `build/Genboard-<version>.zip`, and updates `Casks/genboard.rb` in the Homebrew tap at `$TAP_DIR`.
-   `tools/release.sh --dry-run` stops after notarizing.
+   hardened runtime (re-signing Sparkle's helpers too), notarizes and staples it, tags `v<version>`,
+   publishes the GitHub release with `build/Genboard-<version>.zip`, adds the signed update to the
+   Sparkle feed `docs/appcast.xml` and pushes it, and updates `Casks/genboard.rb` in the Homebrew tap
+   at `$TAP_DIR`. `tools/release.sh --dry-run` stops after notarizing.
+
+The Sparkle signing key is in the login keychain (created by Sparkle's `generate_keys`; its public
+half is `SUPublicEDKey` in `project.yml`). Keep a copy: `generate_keys -x sparkle-key.txt` (the tool
+is in `build/release/SourcePackages/artifacts/sparkle/Sparkle/bin/`). Without it, no further update
+can be published to existing installs.
 
 `TEAM_ID`, `TAP_DIR` and the notarization credentials (`ASC_KEY_ID`/`ASC_ISSUER_ID`, or a
 `NOTARY_PROFILE`) come from the environment, `~/.config/mac-app-kit/defaults.env` or `.release.env`.
+
+## Tests
+
+`tools/test.sh` runs the unit tests (Swift Testing, in `GenboardTests/`); `tools/test.sh SearchTests`
+runs one suite. They cover the checks, family graph, GEDCOM export and import, Scapple import,
+evidence weighting, line hit-testing, reports, search, backups and the local-model client. Tests run
+against an in-memory store, never the real one. `LiveLocalModelTests` talk to a real
+`mlx_lm.server` and only run when given one:
+`TEST_RUNNER_GENBOARD_LOCAL_URL=http://127.0.0.1:8080 tools/test.sh LiveLocalModelTests`.
 
 ## Website
 
@@ -57,11 +73,22 @@ Add an Anthropic API key in Settings (⌘,). It is stored in the macOS Keychain
 questions and record transcription, Claude Haiku 5.5 for session summaries; change them per
 feature in Settings. The assistant panel shows the running cost for each session.
 
+Questions and summaries can also run on a local model (free, private): start `mlx_lm.server`
+(`uv tool install mlx-lm`, then `mlx_lm.server --model mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit`)
+and choose "Local model (MLX)" for a task in Settings.
+
 ## Research board
 
 Each project has a board (⌘2): person, event, evidence and note cards with typed connections
 (spouse, parent, child, supports, contradicts). Drag pinned pages from the Timeline onto it,
-drag the round handle on a card's edge onto another card to connect them (or shift-click), and use **Import Scapple…** to bring in existing `.scap` boards.
+drag the round handle on a card's edge onto another card to connect them (or shift-click), click a
+line to edit the connection, and use the import button to bring in a GEDCOM family tree or a Scapple
+board. Evidence cards hold a citation and a source-quality rating (original / derivative / authored,
+primary / secondary) that weighs each theory's evidence.
+
+**Reports** (⇧⌘R) export a project or a theory as PDF, Markdown or HTML. **Search** (⇧⌘F) covers every
+project. **File ▸ Export Project… / Back Up All Projects… / Restore from Backup…** save and restore
+`.genboard` files.
 
 **Theories** (lightbulb button) track competing hypotheses, e.g. two candidate fathers. Click a
 theory to make it active; what you add or connect goes into it. Each has a status, evidence for

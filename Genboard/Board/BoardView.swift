@@ -614,11 +614,16 @@ struct BoardCardView: View {
             if card.kind == .evidence {
                 HStack(spacing: 6) {
                     if let host = URL(string: card.urlString)?.host() {
-                        Text(host).foregroundStyle(.tertiary)
+                        Text(host.replacingOccurrences(of: "www.", with: ""))
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
                     }
                     Spacer(minLength: 0)
                     Text(card.evidenceRating)
                         .foregroundStyle(card.sourceType == .unknown ? .tertiary : .secondary)
+                        .lineLimit(1)
+                        .fixedSize()
                         .help(card.citation.isEmpty ? "Source quality" : card.citation)
                 }
                 .font(.caption2)

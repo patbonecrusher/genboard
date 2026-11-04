@@ -167,13 +167,11 @@ struct ResearchReport {
     }
 
     private static func evidenceLine(_ card: BoardCard) -> String {
-        var line = card.displayName
-        if card.kind == .evidence {
-            line = sentences(["\(line) (\(card.evidenceRating))", card.citation])
-        } else if card.kind == .note, card.details != card.displayName {
-            line += ": \(card.details)"
+        switch card.kind {
+        case .evidence: sentences(["\(card.displayName) (\(card.evidenceRating))", card.citation])
+        case .note: card.details.isEmpty ? card.displayName : card.details
+        case .person, .event: card.displayName
         }
-        return line
     }
 
     // MARK: Writing
@@ -190,7 +188,10 @@ struct ResearchReport {
         }.joined(separator: "\n\n") + "\n"
     }
 
-    var html: String {
+    var html: String { html(forPrint: false) }
+
+    /// AppKit's HTML import draws list bullets twice, so the PDF gets bullets as indented paragraphs.
+    private func html(forPrint: Bool) -> String {
         func escape(_ text: String) -> String {
             text.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;")
                 .replacingOccurrences(of: ">", with: "&gt;").replacingOccurrences(of: "\n", with: "<br>")
@@ -201,6 +202,7 @@ struct ResearchReport {
             case .paragraph(let text): "<p>\(escape(text))</p>"
             case .meta(let text): "<p class=\"meta\">\(escape(text))</p>"
             case .label(let text): "<p class=\"label\">\(escape(text))</p>"
+            case .bullets(let items) where forPrint: items.map { "<p class=\"item\">•&nbsp;&nbsp;\(escape($0))</p>" }.joined()
             case .bullets(let items): "<ul>" + items.map { "<li>\(escape($0))</li>" }.joined() + "</ul>"
             }
         }.joined(separator: "\n")
@@ -216,6 +218,7 @@ struct ResearchReport {
         .label { font-weight: 600; margin-bottom: 0.2em; }
         ul { margin-top: 0.2em; padding-left: 1.3em; }
         li { margin-bottom: 0.25em; }
+        .item { margin: 0.15em 0 0.15em 1.2em; text-indent: -0.9em; }
         </style></head><body>
         \(body)
         </body></html>
@@ -224,7 +227,7 @@ struct ResearchReport {
 
     /// A paginated US Letter PDF, laid out by AppKit's text system.
     func pdfData() throws -> Data {
-        guard let attributed = NSAttributedString(html: Data(html.utf8), documentAttributes: nil) else {
+        guard let attributed = NSAttributedString(html: Data(html(forPrint: true).utf8), documentAttributes: nil) else {
             throw CocoaError(.fileWriteUnknown)
         }
         let printInfo = NSPrintInfo()

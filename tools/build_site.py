@@ -8,7 +8,7 @@ from pathlib import Path
 SITE = "https://patbonecrusher.github.io/genboard/"
 REPO = "https://github.com/patbonecrusher/genboard"
 DOCS = Path(__file__).resolve().parent.parent / "docs"
-EFFECTIVE = "2 November 2026"
+EFFECTIVE = "3 November 2026"
 
 NAV = [("./", "Overview"), ("help.html", "Help"), ("privacy.html", "Privacy"), ("terms.html", "Terms")]
 
@@ -66,12 +66,12 @@ page("index.html", "Genboard: a research workbench for genealogy",
 <div class="install">
   <div class="card">
     <h3>Homebrew</h3>
-    <p>Installs the app and keeps it up to date with <code>brew upgrade</code>.</p>
+    <p>Installs the app. It keeps itself up to date.</p>
     <pre><code>brew install --cask patbonecrusher/tap/genboard</code></pre>
   </div>
   <div class="card">
     <h3>Direct download</h3>
-    <p>Signed and notarized by Apple. Unzip and drag to Applications.</p>
+    <p>Signed and notarized by Apple. Unzip and drag to Applications; updates arrive on their own.</p>
     <a class="button" href="{REPO}/releases/latest">Download Genboard</a>
   </div>
 </div>
@@ -89,11 +89,14 @@ page("index.html", "Genboard: a research workbench for genealogy",
   <div class="card"><h3>Pins and dead ends</h3><p>Pin a page with <kbd>⌘D</kbd> to save a screenshot, the text you selected and a note on why it matters. Mark searches that led nowhere so you don't repeat them.</p></div>
   <div class="card"><h3>Pick up where you left off</h3><p>Closing a session asks where you stopped, what's next and what's still open. The next session starts with that note and its to-dos.</p></div>
   <div class="card"><h3>A board for the evidence</h3><p>Person, event, evidence and note cards, connected as parent, spouse, child, <em>supports</em> or <em>contradicts</em>. Drag pinned pages straight onto it.</p></div>
-  <div class="card"><h3>Competing theories</h3><p>Track rival explanations, such as two candidate fathers, side by side. Each has a status, evidence for and against, and its own to-dos.</p></div>
+  <div class="card"><h3>Competing theories</h3><p>Track rival explanations, such as two candidate fathers, side by side. Each has a status, evidence for and against weighed by source quality, and its own to-dos.</p></div>
+  <div class="card"><h3>Citations and source quality</h3><p>Give each record a full citation and rate it: original, derivative or authored, with primary or secondary information. A parish register counts for more than an online tree.</p></div>
   <div class="card"><h3>Checks</h3><p>Catches burials dated before a stated death, people appearing after they died, marriages at ten and implausible parent ages. They run locally and cost nothing.</p></div>
-  <div class="card"><h3>Family tree and GEDCOM</h3><p>Ancestor and descendant charts built from the board. Export people, families, events and sources as GEDCOM for other genealogy software.</p></div>
-  <div class="card"><h3>Claude, if you want it</h3><p>With your own Anthropic API key, ask questions about your research, transcribe handwritten parish records, and turn a record into suggested cards you review first.</p></div>
+  <div class="card"><h3>Family tree and GEDCOM</h3><p>Ancestor and descendant charts built from the board. Import a GEDCOM tree from FamilySearch or Ancestry to start from, and export people, families, events and cited sources back out.</p></div>
+  <div class="card"><h3>Reports and search</h3><p>Export a theory or a whole project as a PDF report to share. Search every page, note, transcription, card and citation at once with <kbd>⇧⌘F</kbd>.</p></div>
+  <div class="card"><h3>Claude or a local model</h3><p>With your own Anthropic API key, ask questions, transcribe handwritten parish records, and turn a record into suggested cards you review first. Or run questions and summaries on a free model on your own Mac.</p></div>
   <div class="card"><h3>Scapple boards</h3><p>Import existing Scapple boards. Notes keep their places and colors, and lines and arrows become connections.</p></div>
+  <div class="card"><h3>Backups</h3><p>Save a project, or all of them, as one file with every page, screenshot, card and theory, and restore it on any Mac.</p></div>
 </div>
 
 <div class="card accent">
@@ -105,7 +108,7 @@ page("index.html", "Genboard: a research workbench for genealogy",
 """)
 
 page("help.html", "Help · Genboard",
-     "How to use Genboard: research sessions, pins, the research board, theories, checks, the family tree, GEDCOM export and the Claude assistant.",
+     "How to use Genboard: research sessions, pins, the research board, theories, citations, checks, the family tree, GEDCOM, reports, search, backups and the AI assistant.",
      """
 <h1>Help</h1>
 <p class="lede">How Genboard is organized, and how to use each part.</p>
@@ -129,13 +132,23 @@ page("help.html", "Help · Genboard",
 <ul>
   <li><strong>Add cards</strong> from <strong>+ Add</strong>: Person, Event (baptism, marriage, burial, census…), Note, or Evidence from a pinned page. You can also drag a pinned page from the Timeline onto the board.</li>
   <li><strong>Edit</strong> a card by clicking it. Flag a card as a <em>Question</em> or a <em>Conflict</em>.</li>
-  <li><strong>Connect</strong> two cards by dragging the round handle on a card's edge onto the other card, or select one and shift-click the other. In the card editor, set what the connection means: <em>related</em>, <em>spouse of</em>, <em>parent of</em>, <em>child of</em>, <em>supports</em> or <em>contradicts</em>. Click ✎ beside a connection to give it a label or a note.</li>
+  <li><strong>Connect</strong> two cards by dragging the round handle on a card's edge onto the other card, or select one and shift-click the other.</li>
+  <li><strong>Click a connection line</strong> (or its label) to edit it: what it means (<em>related</em>, <em>spouse of</em>, <em>parent of</em>, <em>child of</em>, <em>supports</em> or <em>contradicts</em>), its direction, a label for the line, a note on why it's there, and which theories it belongs to. The card editor lists a card's connections too.</li>
   <li><strong>Move</strong> cards by dragging them, pan by dragging the background, and zoom with the toolbar or a pinch.</li>
 </ul>
+
+<h2>Citations and source quality</h2>
+<p>Every evidence card has a <strong>Source</strong> section: a full citation (record, date, place, page or folio), the repository, and two ratings from the Genealogical Proof Standard:</p>
+<ul>
+  <li><strong>Source</strong>: <em>Original</em> (the record itself or an image of it, like a Drouin parish register page), <em>Derivative</em> (an index, transcription or abstract) or <em>Authored</em> (someone's conclusions, like an online tree or a memorial).</li>
+  <li><strong>Information</strong>: <em>Primary</em> (from someone who was there, like the priest at a baptism) or <em>Secondary</em> (heard from others, like an age at death).</li>
+</ul>
+<p>Genboard guesses the source type from the site when you add a record, so a Drouin image starts as original and a WikiTree profile as authored. Change it whenever you know better. The ratings show on the card, weigh each theory's evidence, and go into the GEDCOM export and reports.</p>
 
 <h2>Theories</h2>
 <p>Click <strong>Theories</strong> on the board toolbar. A theory is a statement you're testing, like “Émilie's father is Antoine Tremblay”. Press <strong>+</strong> to start one (it begins with the selected card), then click it to make it active: other cards dim, and the cards and connections you add go into it. A card can belong to several theories, so competing versions share the facts they agree on.</p>
 <p>Set a theory's status to <em>Open</em>, <em>Supported</em> or <em>Refuted</em>. Its cards show a <span class="theory">dashed border</span> while it's open and a solid one once supported; cards that belong only to refuted theories are greyed out. Each theory lists its evidence for and against (from <em>supports</em> and <em>contradicts</em> connections) and has its own to-dos. Use the eye button to hide a theory.</p>
+<p>The bars beside each theory show the <strong>weight of its evidence</strong>: one original record with primary information counts fully, an online tree about a quarter, a note of your own a fifth. A theory reads <em>Strong</em>, <em>Fair</em> or <em>Weak</em>, or <em>Contested</em> when the evidence against comes close to the evidence for. It's a guide for where to look next, not a verdict.</p>
 
 <h2>Checks</h2>
 <p><strong>Checks</strong> on the board toolbar compares the years on person and event cards along their connections, and shows a count when it finds something:</p>
@@ -149,10 +162,17 @@ page("help.html", "Help · Genboard",
 
 <h2>Family tree and GEDCOM</h2>
 <p>Use <strong>Tree</strong> (<kbd>⌘3</kbd>) for an ancestor or descendant chart built from the board's <em>parent of</em>, <em>child of</em> and <em>spouse of</em> connections. Pick the starting person from the menu, or double-click anyone in the chart. Competing parents from different theories are all shown in their theory colors.</p>
-<p><strong>GEDCOM</strong> in the tree toolbar saves a GEDCOM 5.5.1 file for FamilySearch, Ancestry, Gramps or MacFamilyTree: people, births, baptisms, deaths, burials, marriages, families, and your evidence cards as sources. Refuted and hidden theories are left out. Set each person's <strong>Sex</strong> in the card editor so parents are placed as husband and wife.</p>
+<p><strong>GEDCOM</strong> in the tree toolbar saves a GEDCOM 5.5.1 file for FamilySearch, Ancestry, Gramps or MacFamilyTree: people, births, baptisms, deaths, burials, marriages, families, and your evidence cards as sources with their citations and quality ratings. Refuted and hidden theories are left out. Set each person's <strong>Sex</strong> in the card editor so parents are placed as husband and wife.</p>
+<p>To start from an existing tree, use the import button on the board toolbar and choose <strong>GEDCOM Family Tree…</strong>. People arrive as person cards laid out as a tree, with parents above their children, couples side by side (marriage year on the line), and the full dates, places, notes and source titles in each card's notes.</p>
 
-<h2>The Claude assistant</h2>
-<p>The AI features are optional and use your own Anthropic API key, added in <strong>Settings</strong> (<kbd>⌘,</kbd>) and stored in your Keychain. Usage is billed to your Anthropic account; the Assistant panel shows the running cost of each session.</p>
+<h2>Reports</h2>
+<p><strong>Export Research Report</strong> (<kbd>⇧⌘R</kbd>, or right-click a project in the sidebar) writes up the whole project or a single theory for family or a genealogical society: each theory's status and weight of evidence, the evidence for and against with citations, connection notes, open questions, people, sources, and the research log of sessions and pinned pages. Save it as a PDF, Markdown or a web page.</p>
+
+<h2>Search</h2>
+<p><strong>Search All Research</strong> (<kbd>⇧⌘F</kbd>, or the magnifying glass at the bottom of the sidebar) looks through every project: pages and their notes, transcriptions, cards, citations, connection notes, theories, session summaries and to-dos. Case and accents don't matter, so “helene” finds Hélène. Every word must appear. Use the arrow keys and Return to open a result where it lives; a result in another project opens that project's latest session.</p>
+
+<h2>The AI assistant</h2>
+<p>The AI features are optional. They use Claude with your own Anthropic API key, added in <strong>Settings</strong> (<kbd>⌘,</kbd>) and stored in your Keychain, or a model running on your own Mac. Claude usage is billed to your Anthropic account; the Assistant panel shows the running cost of each session.</p>
 <ul>
   <li><strong>Assistant</strong> (right-hand panel): ask questions. It sees your pins, notes, dead ends, to-dos, board, theories and earlier session summaries, plus the current page if you attach its text or a screenshot.</li>
   <li><strong>Transcribe with AI</strong> (right-click a pinned page): transcribes and translates a record and lists the people and events in it.</li>
@@ -160,6 +180,11 @@ page("help.html", "Help · Genboard",
   <li><strong>Draft with AI</strong> (when ending a session): writes a first draft of your summary.</li>
 </ul>
 <p>Choose the model for each feature in Settings. See the <a href="privacy.html">Privacy Policy</a> for what is sent.</p>
+<h3>A local model</h3>
+<p>Questions and session summaries can run on a free model on your Mac with <a href="https://github.com/ml-explore/mlx-lm">MLX</a>, so nothing leaves the computer. In Terminal (the first run downloads about 17 GB; a Mac with 32 GB of memory or more is best):</p>
+<pre><code>uv tool install mlx-lm
+mlx_lm.server --model mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit</code></pre>
+<p>Then in Settings, under <strong>Local model (MLX)</strong>, press <strong>Test Connection</strong> and choose <em>Local model (MLX)</em> for a task. LM Studio and Ollama work too; enter their address. Local models read text only, so keep Claude for transcribing handwritten records.</p>
 
 <h2>Importing a Scapple board</h2>
 <p>Click the import button on the board toolbar and choose a <code>.scap</code> file. Notes become note cards in the same places and colors, and lines and arrows become connections. Change a card's type afterwards in its editor.</p>
@@ -172,12 +197,18 @@ page("help.html", "Help · Genboard",
   <tr><td>Pin page</td><td><kbd>⌘D</kbd></td></tr>
   <tr><td>Mark or unmark a dead end</td><td><kbd>⇧⌘D</kbd></td></tr>
   <tr><td>End session</td><td><kbd>⇧⌘E</kbd></td></tr>
+  <tr><td>Search all research</td><td><kbd>⇧⌘F</kbd></td></tr>
+  <tr><td>Export research report</td><td><kbd>⇧⌘R</kbd></td></tr>
   <tr><td>Save a pin, or save and close a session</td><td><kbd>⌘↩</kbd></td></tr>
   <tr><td>Settings</td><td><kbd>⌘,</kbd></td></tr>
 </table></div>
 
-<h2>Your data</h2>
-<p>Everything is stored on your Mac, in <code>~/Library/Application Support/Genboard/</code> (the database and pinned screenshots). To back it up, quit Genboard and copy that folder.</p>
+<h2>Backups and your data</h2>
+<p>Everything is stored on your Mac, in <code>~/Library/Application Support/Genboard/</code> (the database and pinned screenshots).</p>
+<p>In the <strong>File</strong> menu, <strong>Export Project…</strong> saves the current project, and <strong>Back Up All Projects…</strong> saves every project, as one <code>.genboard</code> file with its sessions, pages, screenshots, board, theories and to-dos. <strong>Restore from Backup…</strong> adds the projects in such a file next to yours; it never replaces anything, and a project whose name is taken comes back as “(restored)”. Use it to keep a copy somewhere safe or to move your research to another Mac.</p>
+
+<h2>Updates</h2>
+<p>The downloaded app checks for updates once a day and asks before installing one; <strong>Genboard ▸ Check for Updates…</strong> checks now. With Homebrew, the app updates itself the same way.</p>
 
 <h2>Something wrong?</h2>
 <p>Report it on <a href="https://github.com/patbonecrusher/genboard/issues">GitHub Issues</a>, with your macOS version and what you were doing when it happened.</p>
@@ -190,14 +221,14 @@ page("privacy.html", "Privacy Policy · Genboard",
 <p class="meta">Effective {EFFECTIVE}</p>
 
 <div class="card accent">
-  <p><strong>In short:</strong> Genboard keeps your research on your Mac, and the developer never receives your data or anything about how you use the app. Information leaves your Mac only when the built-in browser loads a website you visit, or when you use an AI feature, which sends your request to Anthropic with your own API key.</p>
+  <p><strong>In short:</strong> Genboard keeps your research on your Mac, and the developer never receives your data or anything about how you use the app. Information leaves your Mac only when the built-in browser loads a website you visit, when you use a Claude AI feature, which sends your request to Anthropic with your own API key, and when the app checks for updates.</p>
 </div>
 
 <h2>Who this covers</h2>
 <p>This policy describes how the Genboard application for macOS ("Genboard", "the app") handles information. Genboard is developed and maintained by an individual developer ("the developer").</p>
 
 <h2>Information the developer collects</h2>
-<p>None. Genboard has no accounts, analytics, telemetry, crash reporting or advertising, and it never sends anything to the developer.</p>
+<p>None. Genboard has no accounts, analytics, telemetry, crash reporting or advertising, and it never sends anything to the developer. Update checks (below) download a public file and send nothing about you or your research.</p>
 
 <h2>Information stored on your Mac</h2>
 <div class="table-wrap"><table>
@@ -207,6 +238,7 @@ page("privacy.html", "Privacy Policy · Genboard",
   <tr><td>Website data from the built-in browser (cookies, so you stay signed in, and caches)</td><td><code>~/Library/WebKit/com.patlaplante.Genboard</code> and <code>~/Library/Caches/com.patlaplante.Genboard</code></td><td>Delete those folders while Genboard is closed.</td></tr>
   <tr><td>Your Anthropic API key</td><td>Your macOS Keychain</td><td><strong>Remove Key</strong> in Settings.</td></tr>
   <tr><td>Preferences, such as the models you chose</td><td><code>~/Library/Preferences/com.patlaplante.Genboard.plist</code></td><td>Delete the file.</td></tr>
+  <tr><td>Backups you export (<code>.genboard</code> files)</td><td>Wherever you save them</td><td>Delete the file.</td></tr>
 </table></div>
 <p>This data is not synced or shared. Genealogy research often includes information about living people; it stays wherever you keep your Mac's files and backups.</p>
 
@@ -221,10 +253,14 @@ page("privacy.html", "Privacy Policy · Genboard",
   <li>the current page's text or a screenshot of it, if you choose to attach them;</li>
   <li>for transcription and suggested cards, the screenshot of that record.</li>
 </ul>
+<p>If you choose a local model for a task instead, that request goes only to the server address you set in Settings, normally a program on your own Mac, and nothing leaves the computer.</p>
 <p>Anthropic processes these requests under its own <a href="https://www.anthropic.com/legal/commercial-terms">commercial terms</a> and <a href="https://www.anthropic.com/legal/privacy">privacy policy</a>, which apply to your API account. The developer never sees these requests or their answers.</p>
 
+<h2>Updates</h2>
+<p>Once a day, and when you choose <strong>Check for Updates…</strong>, Genboard downloads its update list from <code>patbonecrusher.github.io</code> and, when you agree to an update, the new version from GitHub. These requests carry what any download does, such as your IP address, and are handled under GitHub's privacy statement. Genboard doesn't send your system details or anything about your research. Updates use the open-source <a href="https://sparkle-project.org">Sparkle</a> framework, the only third-party code in the app.</p>
+
 <h2>Third parties</h2>
-<p>Apart from the websites you visit and, if you use them, Anthropic's API, Genboard shares nothing with anyone. It contains no third-party code.</p>
+<p>Apart from the websites you visit, GitHub for updates, and, if you use them, Anthropic's API, Genboard shares nothing with anyone.</p>
 
 <h2>Children</h2>
 <p>Genboard does not collect personal information from anyone, including children.</p>

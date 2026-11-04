@@ -77,10 +77,16 @@ extension AppState {
         baptism.title = "Drouin: baptism, St-Hugues 1861"
         baptism.urlString = "https://www.genealogiequebec.com/"
         baptism.details = "Daughter of Antoine Tremblay and Marguerite Gagnon. Godfather: Joseph Tremblay, uncle."
+        baptism.citation = "Baptism of Émilie Tremblay, 3 Feb 1861, St-Hugues parish register, f. 12"
+        baptism.repository = "Drouin Collection, Généalogie Québec"
+        baptism.sourceType = .original
+        baptism.information = .primary
         let profile = addCard(.evidence, at: CGPoint(x: 940, y: 40), in: project)
         profile.title = "WikiTree profile"
         profile.urlString = "https://www.wikitree.com/"
         profile.details = "Gives Joseph as father; no sources."
+        profile.sourceType = .authored
+        profile.information = .undetermined
         let doubt = addCard(.note, at: CGPoint(x: 940, y: 400), in: project)
         doubt.details = "Joseph was the godfather (“oncle”), which may be how WikiTree confused the two brothers."
         doubt.flag = .question
@@ -116,6 +122,25 @@ extension AppState {
 
         let shot = UserDefaults.standard.string(forKey: "GenboardDemoShot") ?? "board"
         switch shot {
+        case "link", "card":
+            bannerDismissed = true
+            mainMode = .board
+            showInspector = false
+            showSidebar = false
+            boardZoom = 0.8
+            boardPan = CGSize(width: 60, height: 40)
+            if shot == "link" {
+                selectedLinkID = antoine.outgoing.first { $0.to === emilie }?.persistentModelID
+            } else {
+                selectedCardID = baptism.persistentModelID
+            }
+        case "search":
+            showSearch = true
+        case "report":
+            reportProject = project
+            if let path = UserDefaults.standard.string(forKey: "GenboardDemoReportPDF") {
+                try? ResearchReport(project: project).pdfData().write(to: URL(fileURLWithPath: path))
+            }
         case "tree":
             bannerDismissed = true
             mainMode = .tree

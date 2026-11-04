@@ -13,7 +13,10 @@ struct GenboardApp: App {
         }
         .defaultSize(width: 1320, height: 860)
         .modelContainer(delegate.appState.container)
-        .commands { ResearchCommands(appState: delegate.appState) }
+        .commands {
+            ResearchCommands(appState: delegate.appState)
+            UpdateCommands(updater: delegate.updater)
+        }
 
         Settings {
             SettingsView()
@@ -24,6 +27,7 @@ struct GenboardApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let appState = AppState()
+    let updater = Updater()
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         appState.handleQuitRequest()

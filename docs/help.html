@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Help · Genboard</title>
-<meta name="description" content="How to use Genboard: research sessions, pins, the research board, theories, checks, the family tree, GEDCOM export and the Claude assistant.">
+<meta name="description" content="How to use Genboard: research sessions, pins, the research board, theories, citations, checks, the family tree, GEDCOM, reports, search, backups and the AI assistant.">
 <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="icon-64.png" sizes="64x64" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Genboard">
 <meta property="og:title" content="Help · Genboard">
-<meta property="og:description" content="How to use Genboard: research sessions, pins, the research board, theories, checks, the family tree, GEDCOM export and the Claude assistant.">
+<meta property="og:description" content="How to use Genboard: research sessions, pins, the research board, theories, citations, checks, the family tree, GEDCOM, reports, search, backups and the AI assistant.">
 <meta property="og:url" content="https://patbonecrusher.github.io/genboard/help.html">
 <meta property="og:image" content="https://patbonecrusher.github.io/genboard/social-card.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -45,13 +45,23 @@
 <ul>
   <li><strong>Add cards</strong> from <strong>+ Add</strong>: Person, Event (baptism, marriage, burial, census…), Note, or Evidence from a pinned page. You can also drag a pinned page from the Timeline onto the board.</li>
   <li><strong>Edit</strong> a card by clicking it. Flag a card as a <em>Question</em> or a <em>Conflict</em>.</li>
-  <li><strong>Connect</strong> two cards by dragging the round handle on a card's edge onto the other card, or select one and shift-click the other. In the card editor, set what the connection means: <em>related</em>, <em>spouse of</em>, <em>parent of</em>, <em>child of</em>, <em>supports</em> or <em>contradicts</em>. Click ✎ beside a connection to give it a label or a note.</li>
+  <li><strong>Connect</strong> two cards by dragging the round handle on a card's edge onto the other card, or select one and shift-click the other.</li>
+  <li><strong>Click a connection line</strong> (or its label) to edit it: what it means (<em>related</em>, <em>spouse of</em>, <em>parent of</em>, <em>child of</em>, <em>supports</em> or <em>contradicts</em>), its direction, a label for the line, a note on why it's there, and which theories it belongs to. The card editor lists a card's connections too.</li>
   <li><strong>Move</strong> cards by dragging them, pan by dragging the background, and zoom with the toolbar or a pinch.</li>
 </ul>
+
+<h2>Citations and source quality</h2>
+<p>Every evidence card has a <strong>Source</strong> section: a full citation (record, date, place, page or folio), the repository, and two ratings from the Genealogical Proof Standard:</p>
+<ul>
+  <li><strong>Source</strong>: <em>Original</em> (the record itself or an image of it, like a Drouin parish register page), <em>Derivative</em> (an index, transcription or abstract) or <em>Authored</em> (someone's conclusions, like an online tree or a memorial).</li>
+  <li><strong>Information</strong>: <em>Primary</em> (from someone who was there, like the priest at a baptism) or <em>Secondary</em> (heard from others, like an age at death).</li>
+</ul>
+<p>Genboard guesses the source type from the site when you add a record, so a Drouin image starts as original and a WikiTree profile as authored. Change it whenever you know better. The ratings show on the card, weigh each theory's evidence, and go into the GEDCOM export and reports.</p>
 
 <h2>Theories</h2>
 <p>Click <strong>Theories</strong> on the board toolbar. A theory is a statement you're testing, like “Émilie's father is Antoine Tremblay”. Press <strong>+</strong> to start one (it begins with the selected card), then click it to make it active: other cards dim, and the cards and connections you add go into it. A card can belong to several theories, so competing versions share the facts they agree on.</p>
 <p>Set a theory's status to <em>Open</em>, <em>Supported</em> or <em>Refuted</em>. Its cards show a <span class="theory">dashed border</span> while it's open and a solid one once supported; cards that belong only to refuted theories are greyed out. Each theory lists its evidence for and against (from <em>supports</em> and <em>contradicts</em> connections) and has its own to-dos. Use the eye button to hide a theory.</p>
+<p>The bars beside each theory show the <strong>weight of its evidence</strong>: one original record with primary information counts fully, an online tree about a quarter, a note of your own a fifth. A theory reads <em>Strong</em>, <em>Fair</em> or <em>Weak</em>, or <em>Contested</em> when the evidence against comes close to the evidence for. It's a guide for where to look next, not a verdict.</p>
 
 <h2>Checks</h2>
 <p><strong>Checks</strong> on the board toolbar compares the years on person and event cards along their connections, and shows a count when it finds something:</p>
@@ -65,10 +75,17 @@
 
 <h2>Family tree and GEDCOM</h2>
 <p>Use <strong>Tree</strong> (<kbd>⌘3</kbd>) for an ancestor or descendant chart built from the board's <em>parent of</em>, <em>child of</em> and <em>spouse of</em> connections. Pick the starting person from the menu, or double-click anyone in the chart. Competing parents from different theories are all shown in their theory colors.</p>
-<p><strong>GEDCOM</strong> in the tree toolbar saves a GEDCOM 5.5.1 file for FamilySearch, Ancestry, Gramps or MacFamilyTree: people, births, baptisms, deaths, burials, marriages, families, and your evidence cards as sources. Refuted and hidden theories are left out. Set each person's <strong>Sex</strong> in the card editor so parents are placed as husband and wife.</p>
+<p><strong>GEDCOM</strong> in the tree toolbar saves a GEDCOM 5.5.1 file for FamilySearch, Ancestry, Gramps or MacFamilyTree: people, births, baptisms, deaths, burials, marriages, families, and your evidence cards as sources with their citations and quality ratings. Refuted and hidden theories are left out. Set each person's <strong>Sex</strong> in the card editor so parents are placed as husband and wife.</p>
+<p>To start from an existing tree, use the import button on the board toolbar and choose <strong>GEDCOM Family Tree…</strong>. People arrive as person cards laid out as a tree, with parents above their children, couples side by side (marriage year on the line), and the full dates, places, notes and source titles in each card's notes.</p>
 
-<h2>The Claude assistant</h2>
-<p>The AI features are optional and use your own Anthropic API key, added in <strong>Settings</strong> (<kbd>⌘,</kbd>) and stored in your Keychain. Usage is billed to your Anthropic account; the Assistant panel shows the running cost of each session.</p>
+<h2>Reports</h2>
+<p><strong>Export Research Report</strong> (<kbd>⇧⌘R</kbd>, or right-click a project in the sidebar) writes up the whole project or a single theory for family or a genealogical society: each theory's status and weight of evidence, the evidence for and against with citations, connection notes, open questions, people, sources, and the research log of sessions and pinned pages. Save it as a PDF, Markdown or a web page.</p>
+
+<h2>Search</h2>
+<p><strong>Search All Research</strong> (<kbd>⇧⌘F</kbd>, or the magnifying glass at the bottom of the sidebar) looks through every project: pages and their notes, transcriptions, cards, citations, connection notes, theories, session summaries and to-dos. Case and accents don't matter, so “helene” finds Hélène. Every word must appear. Use the arrow keys and Return to open a result where it lives; a result in another project opens that project's latest session.</p>
+
+<h2>The AI assistant</h2>
+<p>The AI features are optional. They use Claude with your own Anthropic API key, added in <strong>Settings</strong> (<kbd>⌘,</kbd>) and stored in your Keychain, or a model running on your own Mac. Claude usage is billed to your Anthropic account; the Assistant panel shows the running cost of each session.</p>
 <ul>
   <li><strong>Assistant</strong> (right-hand panel): ask questions. It sees your pins, notes, dead ends, to-dos, board, theories and earlier session summaries, plus the current page if you attach its text or a screenshot.</li>
   <li><strong>Transcribe with AI</strong> (right-click a pinned page): transcribes and translates a record and lists the people and events in it.</li>
@@ -76,6 +93,11 @@
   <li><strong>Draft with AI</strong> (when ending a session): writes a first draft of your summary.</li>
 </ul>
 <p>Choose the model for each feature in Settings. See the <a href="privacy.html">Privacy Policy</a> for what is sent.</p>
+<h3>A local model</h3>
+<p>Questions and session summaries can run on a free model on your Mac with <a href="https://github.com/ml-explore/mlx-lm">MLX</a>, so nothing leaves the computer. In Terminal (the first run downloads about 17 GB; a Mac with 32 GB of memory or more is best):</p>
+<pre><code>uv tool install mlx-lm
+mlx_lm.server --model mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit</code></pre>
+<p>Then in Settings, under <strong>Local model (MLX)</strong>, press <strong>Test Connection</strong> and choose <em>Local model (MLX)</em> for a task. LM Studio and Ollama work too; enter their address. Local models read text only, so keep Claude for transcribing handwritten records.</p>
 
 <h2>Importing a Scapple board</h2>
 <p>Click the import button on the board toolbar and choose a <code>.scap</code> file. Notes become note cards in the same places and colors, and lines and arrows become connections. Change a card's type afterwards in its editor.</p>
@@ -88,12 +110,18 @@
   <tr><td>Pin page</td><td><kbd>⌘D</kbd></td></tr>
   <tr><td>Mark or unmark a dead end</td><td><kbd>⇧⌘D</kbd></td></tr>
   <tr><td>End session</td><td><kbd>⇧⌘E</kbd></td></tr>
+  <tr><td>Search all research</td><td><kbd>⇧⌘F</kbd></td></tr>
+  <tr><td>Export research report</td><td><kbd>⇧⌘R</kbd></td></tr>
   <tr><td>Save a pin, or save and close a session</td><td><kbd>⌘↩</kbd></td></tr>
   <tr><td>Settings</td><td><kbd>⌘,</kbd></td></tr>
 </table></div>
 
-<h2>Your data</h2>
-<p>Everything is stored on your Mac, in <code>~/Library/Application Support/Genboard/</code> (the database and pinned screenshots). To back it up, quit Genboard and copy that folder.</p>
+<h2>Backups and your data</h2>
+<p>Everything is stored on your Mac, in <code>~/Library/Application Support/Genboard/</code> (the database and pinned screenshots).</p>
+<p>In the <strong>File</strong> menu, <strong>Export Project…</strong> saves the current project, and <strong>Back Up All Projects…</strong> saves every project, as one <code>.genboard</code> file with its sessions, pages, screenshots, board, theories and to-dos. <strong>Restore from Backup…</strong> adds the projects in such a file next to yours; it never replaces anything, and a project whose name is taken comes back as “(restored)”. Use it to keep a copy somewhere safe or to move your research to another Mac.</p>
+
+<h2>Updates</h2>
+<p>The downloaded app checks for updates once a day and asks before installing one; <strong>Genboard ▸ Check for Updates…</strong> checks now. With Homebrew, the app updates itself the same way.</p>
 
 <h2>Something wrong?</h2>
 <p>Report it on <a href="https://github.com/patbonecrusher/genboard/issues">GitHub Issues</a>, with your macOS version and what you were doing when it happened.</p>
