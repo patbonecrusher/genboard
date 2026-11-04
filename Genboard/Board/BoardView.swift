@@ -742,8 +742,8 @@ struct CardEditor: View {
                     Button("Suggest Cards with AI", systemImage: "sparkles") {
                         app.suggestionRequest = SuggestionRequest(card: card)
                     }
-                    .disabled(!aiSettings.hasAPIKey)
-                    .help(aiSettings.hasAPIKey
+                    .disabled(!aiSettings.isAvailable(aiSettings.transcriptionModel))
+                    .help(aiSettings.isAvailable(aiSettings.transcriptionModel)
                           ? "Read this record and propose the people, events and relationships it shows"
                           : "Add an Anthropic API key in Settings")
                 }

@@ -11,9 +11,9 @@ struct AssistantView: View {
     var body: some View {
         let chat = app.chat
         VStack(spacing: 0) {
-            if !aiSettings.hasAPIKey {
+            if !aiSettings.isAvailable(aiSettings.chatModel) {
                 HStack {
-                    Text("Add your Anthropic API key to use the assistant.")
+                    Text("Add your Anthropic API key, or choose the local model, to use the assistant.")
                     Spacer()
                     SettingsLink { Text("Settings…") }
                 }
@@ -63,7 +63,7 @@ struct AssistantView: View {
                         .onSubmit(send)
                     Button(action: send) { Image(systemName: "arrow.up.circle.fill").font(.title2) }
                         .buttonStyle(.borderless)
-                        .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || chat.isSending || !aiSettings.hasAPIKey)
+                        .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || chat.isSending || !aiSettings.isAvailable(aiSettings.chatModel))
                 }
                 Text("Session AI cost: \(session.aiCostUSD.formatted(.currency(code: "USD").precision(.fractionLength(2)))) · \(session.aiInputTokens.formatted()) in / \(session.aiOutputTokens.formatted()) out tokens")
                     .font(.caption2)
@@ -75,7 +75,7 @@ struct AssistantView: View {
 
     private func send() {
         let question = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !question.isEmpty, !app.chat.isSending, aiSettings.hasAPIKey else { return }
+        guard !question.isEmpty, !app.chat.isSending, aiSettings.isAvailable(aiSettings.chatModel) else { return }
         input = ""
         Task { await app.askAssistant(question, attachPageText: attachPageText, attachScreenshot: attachScreenshot) }
     }
@@ -102,6 +102,54 @@ private struct ChatBubble: View {
         (try? AttributedString(markdown: line.text,
                                options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
             ?? AttributedString(line.text)
+    }
+}
+
+/// Settings for a model served on this Mac by mlx_lm.server.
+private struct LocalModelSection: View {
+    @Environment(AISettings.self) private var settings
+    @State private var status: String?
+    @State private var checking = false
+
+    var body: some View {
+        @Bindable var settings = settings
+        Section("Local model (MLX)") {
+            TextField("Server", text: $settings.localServerURL, prompt: Text("http://127.0.0.1:8080"))
+            TextField("Model", text: $settings.localModelName, prompt: Text("Whichever the server loaded"))
+            HStack {
+                Button("Test Connection", action: test)
+                    .disabled(checking)
+                if checking { ProgressView().controlSize(.small) }
+                if let status { Text(status).font(.caption).foregroundStyle(.secondary).lineLimit(2) }
+            }
+            Text("Runs on your Mac: free, and nothing leaves the computer. Good for questions and session summaries; reading handwritten records works much better with Claude. To start one in Terminal (the first run downloads about 17 GB):")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("uv tool install mlx-lm\nmlx_lm.server --model mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit")
+                .font(.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+            Text("Then choose “Local model (MLX)” for a task above.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func test() {
+        guard let provider = settings.localProvider else {
+            status = "That server address isn't valid."
+            return
+        }
+        checking = true
+        status = nil
+        Task {
+            defer { checking = false }
+            do {
+                let models = try await provider.availableModels()
+                status = models.isEmpty ? "Connected." : "Connected: " + models.prefix(3).joined(separator: ", ")
+            } catch {
+                status = "Couldn't connect. Is mlx_lm.server running?"
+            }
+        }
     }
 }
 
@@ -144,6 +192,7 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            LocalModelSection()
         }
         .formStyle(.grouped)
         .frame(width: 540)
@@ -153,7 +202,9 @@ struct SettingsView: View {
     private func modelPicker(_ title: String, selection: Binding<String>) -> some View {
         Picker(title, selection: selection) {
             ForEach(ModelCatalog.all) { model in
-                Text("\(model.name) · $\(model.inputPrice.formatted()) / $\(model.outputPrice.formatted()) per M tokens")
+                Text(model.id == ModelCatalog.localID
+                     ? "\(model.name) · free"
+                     : "\(model.name) · $\(model.inputPrice.formatted()) / $\(model.outputPrice.formatted()) per M tokens")
                     .tag(model.id)
             }
         }

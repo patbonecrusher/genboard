@@ -125,8 +125,9 @@ struct CloseSessionSheet: View {
 
             HStack {
                 Button("Draft with AI", systemImage: "sparkles", action: draft)
-                    .disabled(drafting || !aiSettings.hasAPIKey)
-                    .help(aiSettings.hasAPIKey ? "Draft from this session's pages and notes" : "Add an API key in Settings")
+                    .disabled(drafting || !aiSettings.isAvailable(aiSettings.summaryModel))
+                    .help(aiSettings.isAvailable(aiSettings.summaryModel)
+                          ? "Draft from this session's pages and notes" : "Add an API key in Settings, or choose the local model")
                 if drafting { ProgressView().controlSize(.small) }
                 Spacer()
                 Button("Cancel") { app.cancelClose() }

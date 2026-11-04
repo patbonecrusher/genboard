@@ -73,7 +73,6 @@ struct SummaryDraft {
 }
 
 extension AppState {
-    private var aiProvider: AIProvider { ClaudeProvider() }
 
     func askAssistant(_ question: String, attachPageText: Bool, attachScreenshot: Bool) async {
         guard let session = activeSession else { return }
@@ -104,7 +103,7 @@ extension AppState {
 
         do {
             let model = aiSettings.chatModel
-            let reply = try await aiProvider.send(model: model, effort: aiSettings.effort, system: Prompts.assistant,
+            let reply = try await aiSettings.provider(for: model).send(model: model, effort: aiSettings.effort, system: Prompts.assistant,
                                                   turns: chat.turns + [turn], jsonSchema: nil)
             chat.turns += [turn, reply.assistantTurn]
             let cost = record(reply.usage, model: model, in: session)
@@ -129,7 +128,7 @@ extension AppState {
         """
         do {
             let model = aiSettings.transcriptionModel
-            let reply = try await aiProvider.send(model: model, effort: aiSettings.effort, system: Prompts.transcription,
+            let reply = try await aiSettings.provider(for: model).send(model: model, effort: aiSettings.effort, system: Prompts.transcription,
                                                   turns: [.user([.jpeg(jpeg), .text(prompt)])], jsonSchema: nil)
             visit.transcription = reply.text
             if let session = visit.session { record(reply.usage, model: model, in: session) }
@@ -172,7 +171,7 @@ extension AppState {
             "additionalProperties": false,
         ]
         let model = aiSettings.summaryModel
-        let reply = try await aiProvider.send(model: model, effort: "low", system: Prompts.summary,
+        let reply = try await aiSettings.provider(for: model).send(model: model, effort: "low", system: Prompts.summary,
                                               turns: [.user([.text(text)])], jsonSchema: schema)
         record(reply.usage, model: model, in: session)
         guard let json = try JSONSerialization.jsonObject(with: Data(reply.text.utf8)) as? [String: Any] else {
@@ -212,7 +211,7 @@ extension AppState {
         parts.append(.text(text))
 
         let model = aiSettings.transcriptionModel
-        let reply = try await aiProvider.send(model: model, effort: aiSettings.effort, system: Prompts.suggestCards,
+        let reply = try await aiSettings.provider(for: model).send(model: model, effort: aiSettings.effort, system: Prompts.suggestCards,
                                               turns: [.user(parts)], jsonSchema: Self.suggestionSchema)
         if let session = card.visit?.session ?? activeSession { record(reply.usage, model: model, in: session) }
         guard let json = try JSONSerialization.jsonObject(with: Data(reply.text.utf8)) as? [String: Any] else {
