@@ -33,6 +33,8 @@ struct SidebarView: View {
                     Text(project.name)
                         .contextMenu {
                             Button("New Session…") { newSessionProject = project }
+                            Button("Export Research Report…") { app.reportProject = project }
+                            Divider()
                             Button("Delete Project…", role: .destructive) { projectToDelete = project }
                         }
                 }
@@ -53,11 +55,16 @@ struct SidebarView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
                 Divider()
-                Button {
-                    showingNewProject = true
-                } label: {
-                    Label("New Project", systemImage: "folder.badge.plus")
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Button {
+                        showingNewProject = true
+                    } label: {
+                        Label("New Project", systemImage: "folder.badge.plus")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    Button { app.showSearch = true } label: { Image(systemName: "magnifyingglass") }
+                        .help("Search all research (⇧⌘F)")
+                        .disabled(projects.isEmpty)
                 }
                 .buttonStyle(.borderless)
                 .padding(10)

@@ -177,6 +177,16 @@ struct BoardView: View {
         .dropDestination(for: String.self) { items, location in
             dropPages(items, at: location)
         }
+        .onChange(of: app.boardFocusID, initial: true) { center(on: app.boardFocusID) }
+        .onChange(of: viewport) { center(on: app.boardFocusID) }
+    }
+
+    /// Scrolls so a card (from search) sits in the middle of the board.
+    private func center(on id: PersistentIdentifier?) {
+        guard let id, viewport != .zero, let card = project.cards.first(where: { $0.persistentModelID == id }) else { return }
+        app.boardPan = CGSize(width: viewport.width / 2 - (card.x + card.width / 2) * app.boardZoom,
+                              height: viewport.height / 2 - (card.y + 40) * app.boardZoom)
+        app.boardFocusID = nil
     }
 
     private func boardContent(frames: [PersistentIdentifier: CGRect], flaggedCards: Set<ObjectIdentifier>) -> some View {

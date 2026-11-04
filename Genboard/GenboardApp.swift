@@ -40,6 +40,9 @@ struct ResearchCommands: Commands {
                 .disabled(appState.activeSession == nil)
         }
         CommandMenu("Research") {
+            Button("Search All Research…") { appState.showSearch = true }
+                .keyboardShortcut("f", modifiers: [.command, .shift])
+            Divider()
             Button("Browse") { appState.mainMode = .browse }
                 .keyboardShortcut("1")
                 .disabled(appState.activeSession == nil)
@@ -60,6 +63,10 @@ struct ResearchCommands: Commands {
             Button("End Session…") { appState.requestEndSession() }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
                 .disabled(appState.activeSession == nil)
+            Divider()
+            Button("Export Research Report…") { appState.reportProject = appState.activeSession?.project }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+                .disabled(appState.activeSession?.project == nil)
         }
     }
 }

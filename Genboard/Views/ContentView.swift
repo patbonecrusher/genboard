@@ -50,6 +50,12 @@ struct ContentView: View {
         .sheet(item: $app.suggestionRequest) { request in
             SuggestionSheet(request: request)
         }
+        .sheet(item: $app.reportProject) { project in
+            ReportSheet(project: project)
+        }
+        .sheet(isPresented: $app.showSearch) {
+            SearchSheet()
+        }
         .alert("AI error", isPresented: Binding(
             get: { app.aiErrorMessage != nil },
             set: { if !$0 { app.aiErrorMessage = nil } }

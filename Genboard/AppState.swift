@@ -65,6 +65,13 @@ final class AppState {
     var treeShowsDescendants = false
     var treeGenerations = 4
     var suggestionRequest: SuggestionRequest?
+    /// The project whose report sheet is showing.
+    var reportProject: ResearchProject?
+    var showSearch = false
+    /// A card the board should scroll to; BoardView centers it and clears this.
+    var boardFocusID: PersistentIdentifier?
+    /// A search result in another project, shown once that project's session is open.
+    @ObservationIgnored private var pendingReveal: ResearchSearch.Hit?
     var bannerDismissed = false
     var chat = AssistantChat()
     var busyVisits: Set<PersistentIdentifier> = []
@@ -461,6 +468,7 @@ final class AppState {
 
     func cancelClose() {
         showCloseSheet = false
+        pendingReveal = nil
         if case .quit = pendingAfterClose {
             NSApp.reply(toApplicationShouldTerminate: false)
         }
@@ -521,6 +529,55 @@ final class AppState {
         if tabs.isEmpty { addTab(nil, select: false) }
         selectedTabID = tabs.first?.id
         save()
+        if let hit = pendingReveal, hit.project === session.project {
+            pendingReveal = nil
+            reveal(hit)
+        }
+    }
+
+    // MARK: - Search
+
+    /// Opens a search result where it lives: pages in the browser, cards, connections and theories
+    /// on the board. A result in another project first opens that project's latest session.
+    func reveal(_ hit: ResearchSearch.Hit) {
+        if case .session(let session) = hit.target {
+            open(session)
+            return
+        }
+        guard activeSession?.project === hit.project else {
+            guard let latest = hit.project.sortedSessions.first else { return }
+            pendingReveal = hit
+            open(latest)
+            return
+        }
+        switch hit.target {
+        case .visit(let visit):
+            mainMode = .browse
+            openVisit(visit)
+        case .card(let card):
+            if card.isHiddenByTheories { card.hypotheses.forEach { $0.isVisible = true } }
+            mainMode = .board
+            selectedCardID = card.persistentModelID
+            boardFocusID = card.persistentModelID
+        case .link(let link):
+            mainMode = .board
+            selectedLinkID = link.persistentModelID
+            boardFocusID = link.from?.persistentModelID
+        case .theory(let theory):
+            mainMode = .board
+            showTheories = true
+            if activeHypothesisID != theory.persistentModelID { toggleActive(theory) }
+        case .todo(let todo):
+            if let theory = todo.hypothesis {
+                mainMode = .board
+                showTheories = true
+                if activeHypothesisID != theory.persistentModelID { toggleActive(theory) }
+            } else {
+                showInspector = true
+            }
+        case .session:
+            break
+        }
     }
 
     // MARK: - Tabs
