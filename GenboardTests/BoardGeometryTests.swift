@@ -159,3 +159,17 @@ struct BoardImportTests {
         #expect(project.cards.isEmpty)
     }
 }
+
+/// Parses a real Scapple file without importing it. Runs only when given one:
+///   TEST_RUNNER_GENBOARD_SCAPPLE_FILE=/path/board.scap tools/test.sh RealScappleFileTests
+@MainActor
+@Suite(.enabled(if: ProcessInfo.processInfo.environment["GENBOARD_SCAPPLE_FILE"] != nil))
+struct RealScappleFileTests {
+    @Test func parses() throws {
+        let url = URL(fileURLWithPath: ProcessInfo.processInfo.environment["GENBOARD_SCAPPLE_FILE"]!)
+        let notes = try ScappleImporter.parse(Data(contentsOf: url))
+        let images = notes.filter { $0.imagePNG != nil }
+        print("Parsed \(notes.count) notes, \(images.count) with images, \(notes.map { $0.connected.count + $0.pointsTo.count }.reduce(0, +)) connection ends")
+        #expect(!notes.isEmpty)
+    }
+}
