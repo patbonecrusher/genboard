@@ -12,7 +12,6 @@ struct BoardView: View {
     @State private var dragOffsets: [PersistentIdentifier: CGSize] = [:]
     @State private var panStart: CGSize?
     @State private var viewport: CGSize = .zero
-    @State private var importError: String?
     @State private var hoveredCardID: PersistentIdentifier?
     @State private var hoveredHandleID: PersistentIdentifier?
     @GestureState private var magnification: CGFloat = 1
@@ -42,10 +41,11 @@ struct BoardView: View {
             Divider()
             canvas
         }
-        .alert("Import failed", isPresented: Binding(get: { importError != nil }, set: { if !$0 { importError = nil } })) {
+        .alert("Import failed", isPresented: Binding(get: { app.boardImportError != nil },
+                                                     set: { if !$0 { app.boardImportError = nil } })) {
             Button("OK") {}
         } message: {
-            Text(importError ?? "")
+            Text(app.boardImportError ?? "")
         }
     }
 
@@ -95,8 +95,8 @@ struct BoardView: View {
             .fixedSize()
             .help("Contradictions in dates, ages and relationships")
             Menu {
-                Button("GEDCOM Family Tree…") { importGedcom() }
-                Button("Scapple Board…") { importScapple() }
+                Button("Scapple Board or GEDCOM File…") { app.chooseBoardImport() }
+                Text("You can also drag a .scap or .ged file onto the board")
             } label: {
                 Image(systemName: "square.and.arrow.down")
             }
@@ -139,7 +139,7 @@ struct BoardView: View {
                 ContentUnavailableView {
                     Label("Empty board", systemImage: "rectangle.3.group")
                 } description: {
-                    Text("Add people, events and notes, drag pinned pages here from the Timeline, or import a GEDCOM family tree or a Scapple board.")
+                    Text("Add people, events and notes, drag pinned pages here from the Timeline, or drag in a Scapple board (.scap) or a GEDCOM family tree (.ged).")
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .allowsHitTesting(false)
@@ -174,9 +174,10 @@ struct BoardView: View {
                 .updating($magnification) { value, state, _ in state = value.magnification }
                 .onEnded { setZoom(app.boardZoom * $0.magnification) }
         )
-        .dropDestination(for: String.self) { items, location in
-            dropPages(items, at: location)
+        .onDrop(of: [.fileURL, .utf8PlainText, .plainText], isTargeted: nil) { providers, location in
+            drop(providers, at: location)
         }
+        .onChange(of: app.boardFitRequest) { fitToView() }
         .onChange(of: app.boardFocusID, initial: true) { center(on: app.boardFocusID) }
         .onChange(of: viewport) { center(on: app.boardFocusID) }
     }
@@ -420,6 +421,29 @@ struct BoardView: View {
             }
     }
 
+    /// Scapple and GEDCOM files from Finder are imported; pages from the Timeline arrive as URL strings.
+    private func drop(_ providers: [NSItemProvider], at location: CGPoint) -> Bool {
+        let files = providers.filter { $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) }
+        if !files.isEmpty {
+            for provider in files {
+                _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                    guard let url else { return }
+                    Task { @MainActor in app.importToBoard(url) }
+                }
+            }
+            return true
+        }
+        let texts = providers.filter { $0.canLoadObject(ofClass: String.self) }
+        guard !texts.isEmpty else { return false }
+        for provider in texts {
+            _ = provider.loadObject(ofClass: String.self) { text, _ in
+                guard let text else { return }
+                Task { @MainActor in _ = dropPages([text], at: location) }
+            }
+        }
+        return true
+    }
+
     /// Pages dragged from the Timeline arrive as their URL strings.
     private func dropPages(_ items: [String], at location: CGPoint) -> Bool {
         var point = boardPoint(fromView: location)
@@ -442,32 +466,6 @@ struct BoardView: View {
             point.y += 30
         }
         return added
-    }
-
-    private func importGedcom() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [UTType(filenameExtension: "ged") ?? .plainText]
-        panel.message = "Choose a GEDCOM file exported from FamilySearch, Ancestry or other genealogy software"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        do {
-            try app.importGedcom(from: url, into: project)
-            fitToView()
-        } catch {
-            importError = error.localizedDescription
-        }
-    }
-
-    private func importScapple() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [UTType(filenameExtension: "scap") ?? .xml]
-        panel.message = "Choose a Scapple board to add to this project's board"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        do {
-            _ = try app.importScapple(from: url, into: project)
-            fitToView()
-        } catch {
-            importError = error.localizedDescription
-        }
     }
 }
 

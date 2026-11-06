@@ -86,3 +86,51 @@ struct ScappleTests {
         #expect(project.links.filter(\.directed).count == 1)
     }
 }
+
+@MainActor
+struct BoardImportTests {
+    private func appWithSession() -> (AppState, ResearchProject) {
+        let app = AppState()
+        let project = ResearchProject(name: "Import")
+        app.context.insert(project)
+        app.startSession(in: project, goal: "Import")
+        return (app, project)
+    }
+
+    private func file(_ name: String, _ text: String) throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appending(path: "\(UUID())-\(name)")
+        try text.write(to: url, atomically: true, encoding: .utf8)
+        return url
+    }
+
+    @Test func importsScappleAndGedcomByExtension() throws {
+        let (app, project) = appWithSession()
+        app.mainMode = .browse
+        let scap = try file("Board.SCAP", ScappleTests.sample)
+        let ged = try file("tree.ged", GedcomImportTests.sample)
+        defer { [scap, ged].forEach { try? FileManager.default.removeItem(at: $0) } }
+
+        app.importToBoard(scap)
+        #expect(project.cards.count == 4)
+        #expect(app.mainMode == .board)
+        #expect(app.boardFitRequest == 1)
+        app.importToBoard(ged)
+        #expect(project.cards.count == 7)
+        #expect(app.boardFitRequest == 2)
+        #expect(app.boardImportError == nil)
+    }
+
+    @Test func reportsUnsupportedAndBrokenFiles() throws {
+        let (app, project) = appWithSession()
+        let text = try file("notes.txt", "hello")
+        let broken = try file("broken.scap", "<plist/>")
+        defer { [text, broken].forEach { try? FileManager.default.removeItem(at: $0) } }
+
+        app.importToBoard(text)
+        #expect(app.boardImportError?.contains("notes.txt") == true)
+        app.boardImportError = nil
+        app.importToBoard(broken)
+        #expect(app.boardImportError?.contains("Scapple") == true)
+        #expect(project.cards.isEmpty)
+    }
+}

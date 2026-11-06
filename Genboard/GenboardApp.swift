@@ -44,6 +44,10 @@ struct ResearchCommands: Commands {
                 .disabled(appState.activeSession == nil)
         }
         CommandGroup(replacing: .importExport) {
+            Button("Import to Board…") { appState.chooseBoardImport() }
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+                .disabled(appState.activeSession == nil)
+            Divider()
             Button("Export Project…") {
                 if let project = appState.activeSession?.project { appState.exportArchive([project], suggestedName: project.name) }
             }

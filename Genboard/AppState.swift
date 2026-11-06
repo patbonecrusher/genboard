@@ -71,6 +71,10 @@ final class AppState {
     var showSearch = false
     /// Result of a backup or restore, shown in an alert.
     var archiveMessage: String?
+    /// Why a Scapple or GEDCOM import failed, shown in an alert.
+    var boardImportError: String?
+    /// Bumped after an import so the board fits everything into view.
+    var boardFitRequest = 0
     /// A card the board should scroll to; BoardView centers it and clears this.
     var boardFocusID: PersistentIdentifier?
     /// A search result in another project, shown once that project's session is open.
@@ -807,6 +811,38 @@ extension AppState {
             tab.load(url)
         } else {
             addTab(url)
+        }
+    }
+
+    /// File types the board imports: Scapple boards and GEDCOM family trees.
+    static let boardImportTypes = [UTType(filenameExtension: "scap") ?? .xml, UTType(filenameExtension: "ged") ?? .plainText]
+
+    /// Asks for a Scapple board or GEDCOM file and adds it to the current project's board.
+    func chooseBoardImport() {
+        guard activeSession?.project != nil else { return }
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = Self.boardImportTypes
+        panel.allowsMultipleSelection = true
+        panel.message = "Choose a Scapple board (.scap) or a GEDCOM family tree (.ged) to add to this project's board"
+        guard panel.runModal() == .OK else { return }
+        panel.urls.forEach(importToBoard)
+    }
+
+    /// Adds a Scapple board or GEDCOM file to the current project's board, then shows the board.
+    func importToBoard(_ url: URL) {
+        guard let project = activeSession?.project else { return }
+        do {
+            switch url.pathExtension.lowercased() {
+            case "scap": _ = try importScapple(from: url, into: project)
+            case "ged": try importGedcom(from: url, into: project)
+            default:
+                boardImportError = "Genboard imports Scapple boards (.scap) and GEDCOM files (.ged), not “\(url.lastPathComponent)”."
+                return
+            }
+            mainMode = .board
+            boardFitRequest += 1
+        } catch {
+            boardImportError = "\(url.lastPathComponent): \(error.localizedDescription)"
         }
     }
 

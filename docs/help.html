@@ -76,7 +76,7 @@
 <h2>Family tree and GEDCOM</h2>
 <p>Use <strong>Tree</strong> (<kbd>⌘3</kbd>) for an ancestor or descendant chart built from the board's <em>parent of</em>, <em>child of</em> and <em>spouse of</em> connections. Pick the starting person from the menu, or double-click anyone in the chart. Competing parents from different theories are all shown in their theory colors.</p>
 <p><strong>GEDCOM</strong> in the tree toolbar saves a GEDCOM 5.5.1 file for FamilySearch, Ancestry, Gramps or MacFamilyTree: people, births, baptisms, deaths, burials, marriages, families, and your evidence cards as sources with their citations and quality ratings. Refuted and hidden theories are left out. Set each person's <strong>Sex</strong> in the card editor so parents are placed as husband and wife.</p>
-<p>To start from an existing tree, use the import button on the board toolbar and choose <strong>GEDCOM Family Tree…</strong>. People arrive as person cards laid out as a tree, with parents above their children, couples side by side (marriage year on the line), and the full dates, places, notes and source titles in each card's notes.</p>
+<p>To start from an existing tree, choose <strong>File ▸ Import to Board…</strong> (<kbd>⇧⌘I</kbd>) and pick the <code>.ged</code> file, or drag it from the Finder onto the board. People arrive as person cards laid out as a tree, with parents above their children, couples side by side (marriage year on the line), and the full dates, places, notes and source titles in each card's notes.</p>
 
 <h2>Reports</h2>
 <p><strong>Export Research Report</strong> (<kbd>⇧⌘R</kbd>, or right-click a project in the sidebar) writes up the whole project or a single theory for family or a genealogical society: each theory's status and weight of evidence, the evidence for and against with citations, connection notes, open questions, people, sources, and the research log of sessions and pinned pages. Save it as a PDF, Markdown or a web page.</p>
@@ -100,7 +100,7 @@ mlx_lm.server --model mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit</code></pre
 <p>Then in Settings, under <strong>Local model (MLX)</strong>, press <strong>Test Connection</strong> and choose <em>Local model (MLX)</em> for a task. LM Studio and Ollama work too; enter their address. Local models read text only, so keep Claude for transcribing handwritten records.</p>
 
 <h2>Importing a Scapple board</h2>
-<p>Click the import button on the board toolbar and choose a <code>.scap</code> file. Notes become note cards in the same places and colors, and lines and arrows become connections. Change a card's type afterwards in its editor.</p>
+<p>Choose <strong>File ▸ Import to Board…</strong> (<kbd>⇧⌘I</kbd>, or the import button on the board toolbar) and pick a <code>.scap</code> file, or drag the file from the Finder onto the board. Notes become note cards in the same places and colors, and lines and arrows become connections. Change a card's type afterwards in its editor.</p>
 
 <h2>Keyboard shortcuts</h2>
 <div class="table-wrap"><table>
@@ -112,6 +112,7 @@ mlx_lm.server --model mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit</code></pre
   <tr><td>End session</td><td><kbd>⇧⌘E</kbd></td></tr>
   <tr><td>Search all research</td><td><kbd>⇧⌘F</kbd></td></tr>
   <tr><td>Export research report</td><td><kbd>⇧⌘R</kbd></td></tr>
+  <tr><td>Import a Scapple board or GEDCOM file</td><td><kbd>⇧⌘I</kbd></td></tr>
   <tr><td>Save a pin, or save and close a session</td><td><kbd>⌘↩</kbd></td></tr>
   <tr><td>Settings</td><td><kbd>⌘,</kbd></td></tr>
 </table></div>
