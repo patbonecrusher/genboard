@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Genboard</title>
+    <link>https://patbonecrusher.github.io/genboard/appcast.xml</link>
+    <description>Genboard updates</description>
+    <language>en</language>
+    <item>
+      <title>Genboard 0.2</title>
+      <pubDate>Fri, 06 Nov 2026 22:08:20 GMT</pubDate>
+      <sparkle:version>3</sparkle:version>
+      <sparkle:shortVersionString>0.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+<ul><li><strong>Click a connection line</strong> on the board to edit it: what it means, its direction, a label, a note, and its theories.</li><li><strong>Citations and source quality.</strong> Evidence cards hold a full citation and repository, and are rated original, derivative or authored, with primary or secondary information. Each theory shows the weight of its evidence.</li><li><strong>Import a GEDCOM family tree</strong> from FamilySearch, Ancestry or other software, laid out on the board with parents above children.</li><li><strong>Research reports.</strong> Export a whole project or one theory as PDF, Markdown or a web page (⇧⌘R).</li><li><strong>Search all research</strong> across every project: pages, notes, transcriptions, cards, citations, theories and to-dos (⇧⌘F).</li><li><strong>Import to Board</strong> (File menu, ⇧⌘I): bring in a Scapple board or a GEDCOM file, or drag either onto the board.</li><li><strong>Fixed:</strong> Scapple boards with large images failed to import with "NSXMLParserErrorDomain error -1".</li><li><strong>A local model.</strong> Run questions and session summaries on a free model on your Mac with MLX; nothing leaves the computer.</li><li><strong>Backups.</strong> Export a project or all of them as a <code>.genboard</code> file and restore it on any Mac (File menu).</li><li><strong>Automatic updates.</strong> Genboard now checks for updates and installs them when you agree (Genboard ▸ Check for Updates…).</li></ul>
+<p>Requires macOS 15 Sequoia or later, on Apple silicon or Intel.</p>
+<p>Homebrew: <code>brew upgrade --cask genboard</code></p>
+      ]]></description>
+      <enclosure url="https://github.com/patbonecrusher/genboard/releases/download/v0.2/Genboard-0.2.zip" type="application/octet-stream" sparkle:edSignature="/s0hDgDw51t4uOmM/tde86Uzw8K1cA6K10JY+9rLKpDPBIH7GsFZjfurcTu5DQBAiUOnPSVxxS/enhAnA40CCg==" length="3980646"/>
+    </item>
+  </channel>
+</rss>
