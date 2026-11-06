@@ -32,6 +32,13 @@ to regenerate every size in `Genboard/Assets.xcassets/AppIcon.appiconset`.
 
 ## Releasing
 
+`tools/ship.sh` does it all: it bumps `MARKETING_VERSION` (next minor version, or `tools/ship.sh 0.2.1`)
+and `CURRENT_PROJECT_VERSION`, checks `RELEASE_NOTES.md`, commits, pushes and runs `tools/release.sh`.
+If the notes aren't for the new version yet, it drafts them from the commits since the last release
+and stops so you can edit them; run it again to ship. It refuses when nothing in the app changed.
+
+By hand:
+
 1. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` (Sparkle compares the build number) in
    `project.yml` and write `RELEASE_NOTES.md`; commit.
 2. `tools/release.sh` builds a universal Release app signed with the Developer ID certificate and the
