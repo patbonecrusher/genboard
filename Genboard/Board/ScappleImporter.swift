@@ -14,6 +14,8 @@ nonisolated enum ScappleImporter {
         /// Arrows from this note.
         var pointsTo: [Int] = []
         var imagePNG: Data?
+        /// The image as found in the file, decoded once parsing is done.
+        fileprivate var imageBase64: String?
     }
 
     enum ImportError: LocalizedError {
@@ -33,7 +35,17 @@ nonisolated enum ScappleImporter {
             throw ImportError.unreadable(parser.parserError?.localizedDescription ?? "unknown XML error")
         }
         guard delegate.sawScappleRoot else { throw ImportError.unreadable("no ScappleDocument element") }
-        return delegate.notes
+        // Images are decoded only now: decoding a large one inside a parser callback made the parse
+        // fail with NSXMLParserErrorDomain error -1 (see ScappleTests.importsNotesWithLargeImages).
+        return delegate.notes.map { note in
+            var note = note
+            if let base64 = note.imageBase64,
+               let data = Data(base64Encoded: base64, options: .ignoreUnknownCharacters), let image = NSImage(data: data) {
+                note.imagePNG = ImageUtil.pngData(image)
+            }
+            note.imageBase64 = nil
+            return note
+        }
     }
 
     /// Parses Scapple ID lists such as "1-4, 7, 14".
@@ -93,11 +105,8 @@ nonisolated enum ScappleImporter {
             case "FillColor" where path.contains("Appearance"):
                 current?.fillHex = ScappleImporter.hex(fromComponents: text)
             case let element where element.contains("Image"):
-                // Best effort: image notes carry base64 image data. Normalize whatever format to PNG.
-                let base64 = text.components(separatedBy: .whitespacesAndNewlines).joined()
-                if let data = Data(base64Encoded: base64), let image = NSImage(data: data) {
-                    current?.imagePNG = ImageUtil.pngData(image)
-                }
+                // Image notes carry base64 image data, decoded (and normalized to PNG) after parsing.
+                current?.imageBase64 = text
             default:
                 break
             }

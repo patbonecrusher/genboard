@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 import SwiftUI
 import Testing
@@ -62,6 +63,30 @@ struct ScappleTests {
         #expect(notes[0].fillHex == "#FF7F00")
         #expect(notes[0].pointsTo == [1])
         #expect(notes[1].connected == [2, 3])
+    }
+
+    @Test func importsNotesWithLargeImages() throws {
+        // A large pasted image, like a screenshot of a record: random pixels make a ~14 MB base64 block.
+        let rep = try #require(NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1800, pixelsHigh: 1500, bitsPerSample: 8,
+                                                samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                                colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+        var generator = SystemRandomNumberGenerator()
+        for offset in 0..<(1800 * 1500 * 4) { rep.bitmapData![offset] = UInt8.random(in: 0...255, using: &generator) }
+        let png = try #require(rep.representation(using: .png, properties: [:]))
+        let base64 = png.base64EncodedString(options: .lineLength76Characters)
+        #expect(base64.count > 10_000_000)
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ScappleDocument Version="1.1"><Notes>
+        <Note ID="0" Position="0,0"><String>Baptism record</String><ImageData>\(base64)</ImageData><PointsToNoteIDs>1</PointsToNoteIDs></Note>
+        <Note ID="1" Position="300,0"><String>Émilie</String></Note>
+        </Notes></ScappleDocument>
+        """
+        let notes = try ScappleImporter.parse(Data(xml.utf8))
+        #expect(notes.map(\.text) == ["Baptism record", "Émilie"])
+        #expect(notes[0].pointsTo == [1])
+        let image = try #require(notes[0].imagePNG.flatMap(NSBitmapImageRep.init(data:)))
+        #expect(image.pixelsWide == 1800)
     }
 
     @Test func parsesIDLists() {
